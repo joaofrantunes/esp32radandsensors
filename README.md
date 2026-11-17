@@ -30,9 +30,10 @@ O fluxo não recarrega automaticamente o histórico MySQL no dashboard.
 
 | Caminho | Finalidade |
 |---|---|
-| [firmware/ArduinoGeigerCounterMix/](firmware/ArduinoGeigerCounterMix/) | Firmware ESP32 V1.4.0 (Geiger e BMP280) |
+| [firmware/ArduinoGeigerCounterMix/](firmware/ArduinoGeigerCounterMix/) | Firmware ESP32 V1.4.1 (Geiger e BMP280) |
+| [HardwareConfig.h](firmware/ArduinoGeigerCounterMix/HardwareConfig.h) | Seleção dos módulos instalados, ecrã e GPIOs |
 | [credentials.example.h](firmware/ArduinoGeigerCounterMix/credentials.example.h) | Modelo de configuração, sem credenciais reais |
-| [node-red/flows.json](node-red/flows.json) | Fluxo completo: 17 entradas MQTT, 16 gráficos e persistência |
+| [node-red/flows.json](node-red/flows.json) | 17 entradas de medições, 16 gráficos, 6 indicadores de estado e persistência |
 | [database/schema.sql](database/schema.sql) | Criação da base de dados e das 17 tabelas |
 | [database/queries.sql](database/queries.sql) | Exemplos de consultas históricas |
 | [docs/architecture.md](docs/architecture.md) | Ligações, tópicos, tabelas e frequência |
@@ -48,11 +49,41 @@ O fluxo não recarrega automaticamente o histórico MySQL no dashboard.
    IFTTTWebhook e ThingSpeak são opcionais.
 3. Copiar `credentials.example.h` para `credentials.h`. Preencher o SSID,
    a palavra-passe, endereço e porta do broker MQTT. Ativar serviços externos
-   apenas se forem configurados.
+   apenas se forem configurados no HardwareConfig.h.
 4. Confirmar o modelo de placa, as ligações e a tensão dos sinais antes de
    compilar e carregar. O exemplo usa GPIO16 para Geiger, GPIO22 para LED,
    GPIO0 (SDA) e GPIO4 (SCL) para BMP280.
 5. Abrir o monitor série a 115200 baud.
+
+### Configuração modular do hardware
+
+Editar apenas [HardwareConfig.h](firmware/ArduinoGeigerCounterMix/HardwareConfig.h)
+e recompilar/carregar o firmware. Cada opção aceita 1 (ativado) ou 0 (desativado).
+
+| Opção | Predefinição | Efeito de desligar |
+|---|---:|---|
+| ENABLE_GEIGER | 1 | Sem interrupção Geiger, CPM, CPH nem alertas de radiação |
+| ENABLE_BMP280 | 1 | Sem acesso ao sensor nem publicação de temperatura, pressão e altitude |
+| ENABLE_LCD | 0 | Sem inicialização nem biblioteca OLED |
+| ENABLE_LED | 1 | Sem configurar o GPIO nem subscrever comandos do LED |
+| ENABLE_IFTTT | 0 | Sem alertas HTTP |
+| ENABLE_THINGSPEAK | 0 | Sem publicação ThingSpeak |
+
+O I²C só é inicializado quando BMP280 ou OLED está ativado. O Geiger
+desativado também desativa os dependentes IFTTT/ThingSpeak.
+Se o BMP280 ou OLED estiver ativado mas não responder, assinala-se
+unavailable e tenta-se novamente periodicamente. Sem comunicação física
+de diagnóstico, o Geiger não consegue distinguir uma remoção de um período
+sem impulsos: desativá-lo explicitamente se for retirado.
+O OLED pode mostrar CPM, ou temperatura se apenas o BMP280 estiver ativo.
+
+As flags não são comandos de rede; requerem recompilação. Valores antigos
+das flags em credentials.h têm precedência por compatibilidade: removê-los
+desse ficheiro para gerir tudo pelo HardwareConfig.h.
+Para quem usava IFTTT na V1.4.0, ativar ENABLE_IFTTT=1 com as credenciais válidas.
+O dashboard indica o estado dos módulos, sem guardar os estados nas tabelas
+numéricas. Um histórico antigo pode continuar visível no gráfico até sair
+da janela temporal; não são inseridos zeros artificiais.
 
 ### 2. Broker MQTT
 
@@ -121,7 +152,7 @@ Não usar amostras simuladas na base de dados de produção.
   ao broker, à base de dados, ao editor e ao dashboard. Para ligação remota,
   configurar transporte protegido, autenticação e controlo de acesso.
 - Os sensores adicionais do fluxo (GPS, humidade, campo magnético, tensão,
-  sensores internos) não são adquiridos pelo firmware V1.4.0 incluído.
+  sensores internos) não são adquiridos pelo firmware V1.4.1 incluído.
   Os gráficos ficam vazios até existirem publicadores compatíveis.
 - O instante da base de dados é UTC de receção, não o instante físico da
   medição. Dados CPH acumulados e reenviados após falha de rede ficam com

@@ -8,13 +8,9 @@
 #define MQTT_USER ""
 #define MQTT_PASSWORD ""
 
-// Optional cloud services: enable only after configuring credentials.
-#define ENABLE_IFTTT 0
+// Configure optional cloud services in HardwareConfig.h.
 #define EVENT_NAME "Radioactivity"
 #define IFTTT_KEY ""
-#define ENABLE_THINGSPEAK 0
 #define SECRET_CH_ID 0UL
 #define SECRET_WRITE_APIKEY ""
 
-// Optional SSD1306 OLED; uses the same I2C bus as BMP280.
-#define ENABLE_LCD 0

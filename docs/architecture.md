@@ -73,10 +73,30 @@ Não foram presumidos GPIOs ou modelos de sensores adicionais.
 O timestamp do sensor é guardado como valor próprio; não está associado
 automaticamente a mensagens MQTT de outros tópicos.
 
-O firmware também suporta `esp32/output` (comando on/off),
-`esp32/output/state`, `esp32/status` (online/offline),
-`esp32/alarm` e `esp32/bmp280/status`. Esses tópicos não pertenciam
-ao fluxo enviado e ainda não são persistidos pelo dashboard completo.
+## Configuração e estado dos módulos
+
+O ficheiro [HardwareConfig.h](../firmware/ArduinoGeigerCounterMix/HardwareConfig.h)
+permite desligar Geiger, BMP280, OLED, LED, IFTTT e ThingSpeak sem alterar
+o código de aquisição. Mudanças nas flags exigem recompilação e carregamento.
+GPIOs e endereço OLED são também centralizados. Os sensores adicionais
+do fluxo permanecem como extensões previstas, não como medições simuladas.
+
+| Tópico de estado | Valores publicados |
+|---|---|
+| esp32/status | online / offline |
+| esp32/geiger/status | enabled / disabled |
+| esp32/bmp280/status | ok / unavailable / disabled |
+| esp32/lcd/status | ok / unavailable / disabled |
+| esp32/output/state | on / off / disabled |
+| esp32/alarm | on / off / disabled |
+
+O Node-RED mostra estes seis estados num grupo próprio; não são escritos
+nas tabelas numéricas. Estados são retidos no broker e devem ser
+interpretados em conjunto com online/offline. enabled no Geiger significa
+configurado, não prova de presença física. O comando esp32/output
+(on/off) só é subscrito quando o LED estiver ativado.
+O BMP280 tenta recuperar a cada 30 s e o OLED verifica a presença a
+cada 15 s. Nenhum deles bloqueia a aquisição por falta física do módulo.
 
 ## Base de dados
 

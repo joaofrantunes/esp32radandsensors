@@ -2,18 +2,23 @@
   Geiger counter RadiationD-v1.1 (CAJOE) + BMP280 + ESP32
   Original author: Hans Carlos Hofmann; based on Andreas Spiess
   and Mark A. Heckler (@MkHeck). MIT License.
-  Revised V1.4.0: independent acquisition, queued MQTT and cloud delivery.
+  Revised V1.4.1: configurable hardware, optional OLED and module status.
 
   Keep the original credentials.h beside this sketch (never publish it).
-  Default MQTT prefix matches with_BMP280.json. Change MQTT_TOPIC_PREFIX
+  Default MQTT prefix matches node-red/flows.json. Change MQTT_TOPIC_PREFIX
   to "lite" if your deployed Node-RED flow actually uses that prefix.
 */
 #include <Arduino.h>
 #include "credentials.h"
+#include "HardwareConfig.h"
 #include <WiFi.h>
 #include <PubSubClient.h>
+#if ENABLE_BMP280 || ENABLE_LCD
 #include <Wire.h>
+#endif
+#if ENABLE_BMP280
 #include <Adafruit_BMP280.h>
+#endif
 #include <esp_task_wdt.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -21,25 +26,14 @@
 #include <math.h>
 #include <string.h>
 
-// Optional features. ThingSpeak was disabled in V1.3.1.
-#ifndef ENABLE_LCD
-#define ENABLE_LCD        0
-#endif
-#ifndef ENABLE_IFTTT
-#define ENABLE_IFTTT      1
-#endif
-#ifndef ENABLE_THINGSPEAK
-#define ENABLE_THINGSPEAK 0
-#endif
-
 #if ENABLE_LCD
 #include <SSD1306.h>
 #endif
-#if ENABLE_IFTTT
+#if USE_IFTTT
 #include <WiFiClientSecure.h>
 #include "IFTTTWebhook.h"
 #endif
-#if ENABLE_THINGSPEAK
+#if USE_THINGSPEAK
 #include <ThingSpeak.h>
 #endif
 
@@ -53,11 +47,11 @@
 #define MQTT_PASSWORD ""
 #endif
 
-constexpr char VERSION[] = "V1.4.0";
-constexpr int INPUT_PIN = 16;
-constexpr int LED_PIN = 22;
-constexpr int I2C_SDA = 0;
-constexpr int I2C_SCL = 4;
+constexpr char VERSION[] = "V1.4.1";
+constexpr int INPUT_PIN = GEIGER_INPUT_PIN;
+constexpr int LED_PIN = STATUS_LED_PIN;
+constexpr int I2C_SDA = SENSOR_I2C_SDA;
+constexpr int I2C_SCL = SENSOR_I2C_SCL;
 constexpr uint8_t LED_ON = LOW;   // Original board uses active-low LED.
 constexpr uint8_t LED_OFF = HIGH;
 // Original credentials.h has a trailing semicolon in both MQTT macros.
@@ -86,6 +80,8 @@ constexpr char TOPIC_OUTPUT_STATE[] = MQTT_TOPIC_PREFIX "/output/state";
 constexpr char TOPIC_STATUS[] = MQTT_TOPIC_PREFIX "/status";
 constexpr char TOPIC_ALARM[] = MQTT_TOPIC_PREFIX "/alarm";
 constexpr char TOPIC_BMP_STATUS[] = MQTT_TOPIC_PREFIX "/bmp280/status";
+constexpr char TOPIC_GEIGER_STATUS[] = MQTT_TOPIC_PREFIX "/geiger/status";
+constexpr char TOPIC_LCD_STATUS[] = MQTT_TOPIC_PREFIX "/lcd/status";
 
 // A monotonic (modulo 2^32) counter: the ISR is the only writer.
 // Each acquisition interval has its own baseline. No ISR reset races.
@@ -101,6 +97,12 @@ bool alarmActive = false;
 bool bmpReady = false;
 uint8_t bmpAddress = 0x76;
 bool measurementWdt = false;
+#if ENABLE_LCD
+bool lcdReady = false;
+uint32_t lastLcdMs = 0;
+double lcdCpm = NAN;
+float lcdTemperature = NAN;
+#endif
 
 struct RadiationSample {
   uint32_t pulses;
@@ -124,17 +126,22 @@ struct EnvironmentSample {
 QueueHandle_t cpmQueue = nullptr;
 QueueHandle_t environmentQueue = nullptr;
 QueueHandle_t hourlyQueue = nullptr;
-#if ENABLE_IFTTT
+#if USE_IFTTT
 QueueHandle_t alertQueue = nullptr;
 #endif
-#if ENABLE_THINGSPEAK
+#if USE_THINGSPEAK
 QueueHandle_t thingSpeakQueue = nullptr;
 #endif
+#if ENABLE_LCD
+QueueHandle_t lcdStatusQueue = nullptr;
+#endif
 
+#if ENABLE_BMP280
 Adafruit_BMP280 bmp(&Wire);  // One explicit I2C bus, not a duplicate TwoWire(0).
+#endif
 #if ENABLE_LCD
 // OLED shares the BMP280 bus and uses the same SDA/SCL pins.
-SSD1306 display(0x3c, I2C_SDA, I2C_SCL);
+SSD1306 display(OLED_I2C_ADDRESS, I2C_SDA, I2C_SCL);
 #endif
 
 // MQTT client is accessed exclusively from mqttTask.
@@ -179,6 +186,7 @@ bool publishNumber(const char *topic, double value, bool retained = false) {
 }
 
 void mqttCallback(char *topic, byte *payload, unsigned int length) {
+  if (!ENABLE_LED) return;
   if (strcmp(topic, TOPIC_OUTPUT) != 0) return;
   if (length == 2 && memcmp(payload, "on", 2) == 0) {
     outputOn = true;
@@ -204,8 +212,10 @@ bool connectMqtt(const char *clientId) {
     Serial.printf("[MQTT] Connection failed (rc=%d)\n", mqttClient.state());
     return false;
   }
-  if (!mqttClient.subscribe(TOPIC_OUTPUT, 1) ||
-      !mqttClient.publish(TOPIC_STATUS, "online", true)) {
+  if ((ENABLE_LED && !mqttClient.subscribe(TOPIC_OUTPUT, 1)) ||
+      !mqttClient.publish(TOPIC_STATUS, "online", true) ||
+      !mqttClient.publish(TOPIC_GEIGER_STATUS, ENABLE_GEIGER ? "enabled" : "disabled", true) ||
+      (!ENABLE_GEIGER && !mqttClient.publish(TOPIC_ALARM, "disabled", true))) {
     mqttTransport.stop();
     return false;
   }
@@ -235,16 +245,22 @@ void mqttTask(void *parameter) {
   bool cpmPending = false;
   bool envPending = false;
   bool haveCpm = false;
-  bool haveEnv = false;
+  bool lcdPending = true;
+  bool lcdAvailable = false;
 
   for (;;) {
     const uint32_t now = millis();
-    if (xQueueReceive(cpmQueue, &cpm, 0) == pdTRUE) {
+    if (cpmQueue && xQueueReceive(cpmQueue, &cpm, 0) == pdTRUE) {
       cpmPending = haveCpm = true;
     }
-    if (xQueueReceive(environmentQueue, &env, 0) == pdTRUE) {
-      envPending = haveEnv = true;
+    if (environmentQueue && xQueueReceive(environmentQueue, &env, 0) == pdTRUE) {
+      envPending = true;
     }
+#if ENABLE_LCD
+    if (lcdStatusQueue && xQueueReceive(lcdStatusQueue, &lcdAvailable, 0) == pdTRUE) {
+      lcdPending = true;
+    }
+#endif
 
     if (WiFi.status() != WL_CONNECTED) {
       if (mqttClient.connected()) mqttTransport.stop();
@@ -258,15 +274,22 @@ void mqttTask(void *parameter) {
         // A network call can block this task, never the acquisition loop.
         if (connectMqtt(clientId)) {
           cpmPending = haveCpm;
-          envPending = haveEnv;
+          envPending = true; // Refresh status even when BMP280 is disabled.
+          lcdPending = true;
         }
         lastMqttAttempt = millis();
       }
       if (mqttClient.connected() && mqttClient.loop()) {
         bool ok = true;
         if (outputDirty) {
-          ok = mqttClient.publish(TOPIC_OUTPUT_STATE, outputOn ? "on" : "off", true);
+          ok = mqttClient.publish(TOPIC_OUTPUT_STATE,
+                                  ENABLE_LED ? (outputOn ? "on" : "off") : "disabled", true);
           if (ok) outputDirty = false;
+        }
+        if (ok && lcdPending) {
+          ok = mqttClient.publish(TOPIC_LCD_STATUS,
+                                  ENABLE_LCD ? (lcdAvailable ? "ok" : "unavailable") : "disabled", true);
+          if (ok) lcdPending = false;
         }
         if (ok && cpmPending) {
           ok = publishNumber(TOPIC_CPM, cpm.rate) &&
@@ -274,8 +297,9 @@ void mqttTask(void *parameter) {
           if (ok) cpmPending = false;
         }
         if (ok && envPending) {
-          ok = mqttClient.publish(TOPIC_BMP_STATUS, env.valid ? "ok" : "unavailable", true);
-          if (ok && env.valid) {
+          ok = mqttClient.publish(TOPIC_BMP_STATUS,
+                                  ENABLE_BMP280 ? (env.valid ? "ok" : "unavailable") : "disabled", true);
+          if (ok && ENABLE_BMP280 && env.valid) {
             ok = publishNumber(TOPIC_TEMP, env.temperature) &&
                  publishNumber(TOPIC_PRESS, env.pressure) &&
                  publishNumber(TOPIC_ALT, env.altitude);
@@ -284,7 +308,7 @@ void mqttTask(void *parameter) {
         }
         // Remove a historical observation only if publication was accepted.
         RadiationSample hour;
-        if (ok && xQueuePeek(hourlyQueue, &hour, 0) == pdTRUE) {
+        if (ok && hourlyQueue && xQueuePeek(hourlyQueue, &hour, 0) == pdTRUE) {
           ok = publishNumber(TOPIC_RAD, hour.rate);
           if (ok) xQueueReceive(hourlyQueue, &hour, 0);
         }
@@ -299,21 +323,21 @@ void mqttTask(void *parameter) {
   }
 }
 
-#if ENABLE_IFTTT || ENABLE_THINGSPEAK
+#if USE_IFTTT || USE_THINGSPEAK
 // HTTP/HTTPS must not block MQTT or measurement (separate task).
 void cloudTask(void *parameter) {
   (void)parameter;
-#if ENABLE_THINGSPEAK
+#if USE_THINGSPEAK
   WiFiClient tsClient;
   ThingSpeak.begin(tsClient);
   uint32_t lastTsAttempt = millis() - CLOUD_RETRY_MS;
 #endif
-#if ENABLE_IFTTT
+#if USE_IFTTT
   uint32_t lastAlertAttempt = millis() - CLOUD_RETRY_MS;
 #endif
   for (;;) {
     if (WiFi.status() == WL_CONNECTED) {
-#if ENABLE_IFTTT
+#if USE_IFTTT
       double alert;
       if (due(millis(), lastAlertAttempt, CLOUD_RETRY_MS) &&
           xQueuePeek(alertQueue, &alert, 0) == pdTRUE) {
@@ -327,7 +351,7 @@ void cloudTask(void *parameter) {
         Serial.printf("[IFTTT] Result=%d\n", result);
       }
 #endif
-#if ENABLE_THINGSPEAK
+#if USE_THINGSPEAK
       RadiationSample hour;
       if (due(millis(), lastTsAttempt, CLOUD_RETRY_MS) &&
           xQueuePeek(thingSpeakQueue, &hour, 0) == pdTRUE) {
@@ -344,6 +368,7 @@ void cloudTask(void *parameter) {
 }
 #endif
 
+#if ENABLE_BMP280
 void initBmp() {
   // BMP280 modules commonly use either address.
   bmpAddress = 0x76;
@@ -391,8 +416,13 @@ void sampleBmp(uint32_t now) {
                   sample.temperature, sample.pressure, sample.altitude);
   }
   if (environmentQueue) xQueueOverwrite(environmentQueue, &sample);
+#if ENABLE_LCD
+  lcdTemperature = sample.valid ? sample.temperature : NAN;
+#endif
 }
+#endif
 
+#if ENABLE_GEIGER
 void sampleRadiation(uint32_t now) {
   const bool cpmDue = due(now, lastCpmMs, CPM_INTERVAL_MS);
   const bool cphDue = due(now, lastCphMs, CPH_INTERVAL_MS);
@@ -408,7 +438,7 @@ void sampleRadiation(uint32_t now) {
     if (!alarmActive && cpm >= ALARM_HIGH_CPM) {
       alarmActive = true;
       Serial.println("[ALARM] High CPM");
-#if ENABLE_IFTTT
+#if USE_IFTTT
       enqueueFifo(alertQueue, &cpm, "alarm");
 #endif
     } else if (alarmActive && cpm < ALARM_LOW_CPM) {
@@ -420,12 +450,7 @@ void sampleRadiation(uint32_t now) {
                   static_cast<unsigned long>(delta),
                   static_cast<unsigned long>(elapsed), cpm);
 #if ENABLE_LCD
-    display.clear();
-    display.setColor(WHITE);
-    display.setTextAlignment(TEXT_ALIGN_CENTER);
-    display.drawString(64, 0, alarmActive ? "ALARM" : "Radioactivity");
-    display.drawString(64, 30, String(cpm, 1));
-    display.display();
+    lcdCpm = cpm;
 #endif
   }
   if (cphDue) {
@@ -435,7 +460,7 @@ void sampleRadiation(uint32_t now) {
     lastCphMs = now;
     const RadiationSample sample = {delta, elapsed, normalizedRate(delta, elapsed, 3600000.0)};
     enqueueFifo(hourlyQueue, &sample, "MQTT hourly");
-#if ENABLE_THINGSPEAK
+#if USE_THINGSPEAK
     enqueueFifo(thingSpeakQueue, &sample, "ThingSpeak hourly");
 #endif
     Serial.printf("[CPH] pulses=%lu elapsed=%lu ms CPH=%.2f\n",
@@ -443,23 +468,69 @@ void sampleRadiation(uint32_t now) {
                   static_cast<unsigned long>(elapsed), sample.rate);
   }
 }
+#endif
+
+#if ENABLE_LCD
+void sampleLcd(uint32_t now) {
+  if (!due(now, lastLcdMs, CPM_INTERVAL_MS)) return;
+  lastLcdMs = now;
+  Wire.beginTransmission(OLED_I2C_ADDRESS);
+  const bool present = Wire.endTransmission() == 0;
+  if (present != lcdReady) {
+    lcdReady = present;
+    if (lcdReady) {
+      display.init();
+      display.flipScreenVertically();
+      display.setFont(ArialMT_Plain_24);
+    }
+    Serial.println(lcdReady ? "[OLED] Present" : "[OLED] Unavailable");
+  }
+  if (lcdStatusQueue) xQueueOverwrite(lcdStatusQueue, &lcdReady);
+  if (!lcdReady) return;
+  display.clear();
+  display.setColor(WHITE);
+  display.setTextAlignment(TEXT_ALIGN_CENTER);
+  if (ENABLE_GEIGER && isfinite(lcdCpm)) {
+    display.drawString(64, 0, alarmActive ? "ALARM" : "Radioactivity");
+    display.drawString(64, 30, String(lcdCpm, 1));
+  } else if (ENABLE_BMP280 && isfinite(lcdTemperature)) {
+    display.drawString(64, 0, "Temp. C");
+    display.drawString(64, 30, String(lcdTemperature, 1));
+  } else {
+    display.drawString(64, 0, "ESP32");
+    display.drawString(64, 30, "No data");
+  }
+  display.display();
+}
+#endif
 
 void setup() {
   Serial.begin(115200);
   Serial.printf("Geiger counter %s\n", VERSION);
-  pinMode(LED_PIN, OUTPUT);
-  digitalWrite(LED_PIN, LED_OFF);
+  Serial.printf("[CONFIG] Geiger=%d BMP280=%d OLED=%d LED=%d IFTTT=%d ThingSpeak=%d\n",
+                ENABLE_GEIGER, ENABLE_BMP280, ENABLE_LCD, ENABLE_LED, USE_IFTTT, USE_THINGSPEAK);
+  if (ENABLE_LED) {
+    pinMode(LED_PIN, OUTPUT);
+    digitalWrite(LED_PIN, LED_OFF);
+  }
+#if ENABLE_GEIGER
   pinMode(INPUT_PIN, INPUT);
   lastCpmMs = lastCphMs = millis();
   attachInterrupt(digitalPinToInterrupt(INPUT_PIN), ISR_impulse, FALLING);
 
   cpmQueue = xQueueCreate(1, sizeof(CpmSample));
-  environmentQueue = xQueueCreate(1, sizeof(EnvironmentSample));
   hourlyQueue = xQueueCreate(HOURLY_QUEUE_DEPTH, sizeof(RadiationSample));
-#if ENABLE_IFTTT
+#endif
+#if ENABLE_BMP280
+  environmentQueue = xQueueCreate(1, sizeof(EnvironmentSample));
+#endif
+#if ENABLE_LCD
+  lcdStatusQueue = xQueueCreate(1, sizeof(bool));
+#endif
+#if USE_IFTTT
   alertQueue = xQueueCreate(ALERT_QUEUE_DEPTH, sizeof(double));
 #endif
-#if ENABLE_THINGSPEAK
+#if USE_THINGSPEAK
   thingSpeakQueue = xQueueCreate(HOURLY_QUEUE_DEPTH, sizeof(RadiationSample));
 #endif
 
@@ -473,26 +544,32 @@ void setup() {
   }
 
   // Keep original wiring. GPIO0 is a boot-strapping pin on classic ESP32.
+#if ENABLE_BMP280 || ENABLE_LCD
   Wire.begin(I2C_SDA, I2C_SCL, 100000);
   Wire.setTimeOut(50);
-#if ENABLE_LCD
-  display.init();
-  display.flipScreenVertically();
-  display.setFont(ArialMT_Plain_24);
 #endif
+#if ENABLE_LCD
+  lastLcdMs = millis() - CPM_INTERVAL_MS;
+#endif
+#if ENABLE_BMP280
   lastBmpMs = millis() - BMP_INTERVAL_MS; // First sample as soon as ready.
   initBmp();
+#endif
 
-  if (!cpmQueue || !environmentQueue || !hourlyQueue ||
+  if ((ENABLE_GEIGER && (!cpmQueue || !hourlyQueue)) ||
+      (ENABLE_BMP280 && !environmentQueue) ||
+#if ENABLE_LCD
+      !lcdStatusQueue ||
+#endif
       xTaskCreate(mqttTask, "geiger-mqtt", 6144, nullptr, 1, nullptr) != pdPASS) {
     Serial.println("[ERROR] MQTT task unavailable; local measurement continues");
   }
-#if ENABLE_IFTTT || ENABLE_THINGSPEAK
+#if USE_IFTTT || USE_THINGSPEAK
   bool cloudReady = true;
-#if ENABLE_IFTTT
+#if USE_IFTTT
   cloudReady = cloudReady && alertQueue != nullptr;
 #endif
-#if ENABLE_THINGSPEAK
+#if USE_THINGSPEAK
   cloudReady = cloudReady && thingSpeakQueue != nullptr;
 #endif
   if (!cloudReady ||
@@ -504,7 +581,14 @@ void setup() {
 
 void loop() {
   if (measurementWdt) esp_task_wdt_reset();
+#if ENABLE_GEIGER
   sampleRadiation(millis());
+#endif
+#if ENABLE_BMP280
   sampleBmp(millis());
+#endif
+#if ENABLE_LCD
+  sampleLcd(millis());
+#endif
   delay(10);
 }

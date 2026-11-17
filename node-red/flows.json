@@ -1636,7 +1636,7 @@
     "type": "ui_group",
     "name": "Main",
     "tab": "e7c46d5e.a1283",
-    "order": 1,
+    "order": 2,
     "disp": true,
     "width": "6",
     "collapse": false
@@ -1791,6 +1791,244 @@
     "statusType": "auto",
     "x": 780,
     "y": 260,
+    "wires": []
+  },
+  {
+    "id": "c0ffee00000000a0",
+    "type": "ui_group",
+    "name": "Estado dos módulos",
+    "tab": "e7c46d5e.a1283",
+    "order": 1,
+    "disp": true,
+    "width": "6",
+    "collapse": false
+  },
+  {
+    "id": "c0ffee00000000b1",
+    "type": "mqtt in",
+    "z": "51485792b6dd2f3b",
+    "name": "ESP32",
+    "topic": "esp32/status",
+    "qos": "1",
+    "datatype": "utf8",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 740,
+    "y": 2250,
+    "wires": [
+      [
+        "c0ffee00000000c1"
+      ]
+    ]
+  },
+  {
+    "id": "c0ffee00000000c1",
+    "type": "ui_text",
+    "z": "51485792b6dd2f3b",
+    "group": "c0ffee00000000a0",
+    "order": 1,
+    "width": 6,
+    "height": 1,
+    "name": "ESP32",
+    "label": "ESP32",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "className": "",
+    "x": 1010,
+    "y": 2250,
+    "wires": []
+  },
+  {
+    "id": "c0ffee00000000b2",
+    "type": "mqtt in",
+    "z": "51485792b6dd2f3b",
+    "name": "Geiger (configuração)",
+    "topic": "esp32/geiger/status",
+    "qos": "1",
+    "datatype": "utf8",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 740,
+    "y": 2300,
+    "wires": [
+      [
+        "c0ffee00000000c2"
+      ]
+    ]
+  },
+  {
+    "id": "c0ffee00000000c2",
+    "type": "ui_text",
+    "z": "51485792b6dd2f3b",
+    "group": "c0ffee00000000a0",
+    "order": 2,
+    "width": 6,
+    "height": 1,
+    "name": "Geiger (configuração)",
+    "label": "Geiger (configuração)",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "className": "",
+    "x": 1010,
+    "y": 2300,
+    "wires": []
+  },
+  {
+    "id": "c0ffee00000000b3",
+    "type": "mqtt in",
+    "z": "51485792b6dd2f3b",
+    "name": "BMP280",
+    "topic": "esp32/bmp280/status",
+    "qos": "1",
+    "datatype": "utf8",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 740,
+    "y": 2350,
+    "wires": [
+      [
+        "c0ffee00000000c3"
+      ]
+    ]
+  },
+  {
+    "id": "c0ffee00000000c3",
+    "type": "ui_text",
+    "z": "51485792b6dd2f3b",
+    "group": "c0ffee00000000a0",
+    "order": 3,
+    "width": 6,
+    "height": 1,
+    "name": "BMP280",
+    "label": "BMP280",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "className": "",
+    "x": 1010,
+    "y": 2350,
+    "wires": []
+  },
+  {
+    "id": "c0ffee00000000b4",
+    "type": "mqtt in",
+    "z": "51485792b6dd2f3b",
+    "name": "OLED",
+    "topic": "esp32/lcd/status",
+    "qos": "1",
+    "datatype": "utf8",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 740,
+    "y": 2400,
+    "wires": [
+      [
+        "c0ffee00000000c4"
+      ]
+    ]
+  },
+  {
+    "id": "c0ffee00000000c4",
+    "type": "ui_text",
+    "z": "51485792b6dd2f3b",
+    "group": "c0ffee00000000a0",
+    "order": 4,
+    "width": 6,
+    "height": 1,
+    "name": "OLED",
+    "label": "OLED",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "className": "",
+    "x": 1010,
+    "y": 2400,
+    "wires": []
+  },
+  {
+    "id": "c0ffee00000000b5",
+    "type": "mqtt in",
+    "z": "51485792b6dd2f3b",
+    "name": "LED",
+    "topic": "esp32/output/state",
+    "qos": "1",
+    "datatype": "utf8",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 740,
+    "y": 2450,
+    "wires": [
+      [
+        "c0ffee00000000c5"
+      ]
+    ]
+  },
+  {
+    "id": "c0ffee00000000c5",
+    "type": "ui_text",
+    "z": "51485792b6dd2f3b",
+    "group": "c0ffee00000000a0",
+    "order": 5,
+    "width": 6,
+    "height": 1,
+    "name": "LED",
+    "label": "LED",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "className": "",
+    "x": 1010,
+    "y": 2450,
+    "wires": []
+  },
+  {
+    "id": "c0ffee00000000b6",
+    "type": "mqtt in",
+    "z": "51485792b6dd2f3b",
+    "name": "Alarme CPM",
+    "topic": "esp32/alarm",
+    "qos": "1",
+    "datatype": "utf8",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 740,
+    "y": 2500,
+    "wires": [
+      [
+        "c0ffee00000000c6"
+      ]
+    ]
+  },
+  {
+    "id": "c0ffee00000000c6",
+    "type": "ui_text",
+    "z": "51485792b6dd2f3b",
+    "group": "c0ffee00000000a0",
+    "order": 6,
+    "width": 6,
+    "height": 1,
+    "name": "Alarme CPM",
+    "label": "Alarme CPM",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "className": "",
+    "x": 1010,
+    "y": 2500,
     "wires": []
   }
 ]

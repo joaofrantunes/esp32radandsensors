@@ -15,10 +15,18 @@ for (const n of flow) {
         if (n[key] && n.type !== 'mqtt-broker') assert(byId.has(n[key]), 'Missing config ' + n[key]);
     }
 }
-const sources = flow.filter(n => n.type === 'mqtt in');
+const allSources = flow.filter(n => n.type === 'mqtt in');
+const sources = allSources.filter(n => byId.get(n.wires[0][0])?.type === 'function');
+const statusSources = allSources.filter(n => byId.get(n.wires[0][0])?.type === 'ui_text');
 assert.equal(sources.length, 17);
-assert.equal(new Set(sources.map(n => n.topic)).size, 17);
+assert.equal(allSources.length, 23);
+assert.equal(new Set(allSources.map(n => n.topic)).size, 23);
+assert.equal(statusSources.length, 6);
+assert.deepEqual(statusSources.map(n => n.topic).sort(),
+    ['esp32/status','esp32/geiger/status','esp32/bmp280/status','esp32/lcd/status',
+     'esp32/output/state','esp32/alarm'].sort());
 assert.equal(flow.filter(n => n.type === 'ui_chart').length, 16);
+assert.equal(flow.filter(n => n.type === 'ui_text').length, 6);
 const tables = new Set();
 const db = flow.find(n => n.type === 'Stackhero-MySQL');
 let checks = 0;
@@ -54,4 +62,4 @@ for (const source of sources) {
 assert.equal(tables.size, 17);
 assert.equal(flow.find(n => n.type === 'mqtt-broker').broker, 'localhost');
 assert.equal(flow.find(n => n.type === 'Stackhero-MySQL-Server').host, 'localhost');
-console.log('PASS: ' + checks + ' payload cases; 17 unique topics/tables; 16 charts; valid flow wiring');
+console.log('PASS: ' + checks + ' payload cases; 17 telemetry topics/tables; 16 charts; 6 status indicators; valid flow wiring');
