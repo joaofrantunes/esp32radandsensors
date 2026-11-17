@@ -1,0 +1,1796 @@
+[
+  {
+    "id": "51485792b6dd2f3b",
+    "type": "tab",
+    "label": "ESP32 radiation and sensors",
+    "disabled": false,
+    "info": "",
+    "env": []
+  },
+  {
+    "id": "b1136fd838afb2eb",
+    "type": "mqtt in",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "topic": "esp32/temperature",
+    "qos": "2",
+    "datatype": "auto-detect",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": false,
+    "inputs": 0,
+    "x": 110,
+    "y": 440,
+    "wires": [
+      [
+        "08e10a2adcbfc041"
+      ]
+    ]
+  },
+  {
+    "id": "f567bba193da45b6",
+    "type": "debug",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "active": false,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "false",
+    "x": 307,
+    "y": 407,
+    "wires": []
+  },
+  {
+    "id": "e84a9f837bf52452",
+    "type": "mqtt in",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "topic": "esp32/pressure",
+    "qos": "2",
+    "datatype": "auto-detect",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": false,
+    "inputs": 0,
+    "x": 100,
+    "y": 120,
+    "wires": [
+      [
+        "61611f3f37f197a6"
+      ]
+    ]
+  },
+  {
+    "id": "321a72c07355e573",
+    "type": "debug",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "active": false,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 297,
+    "y": 87,
+    "wires": []
+  },
+  {
+    "id": "42a63a1de07e9a54",
+    "type": "ui_chart",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "group": "61285987.c20328",
+    "order": 3,
+    "width": 0,
+    "height": 0,
+    "label": "Temperature (ºC)",
+    "chartType": "line",
+    "legend": "false",
+    "xformat": "HH:mm:ss",
+    "interpolate": "linear",
+    "nodata": "",
+    "dot": false,
+    "ymin": "",
+    "ymax": "",
+    "removeOlder": 1,
+    "removeOlderPoints": "",
+    "removeOlderUnit": "3600",
+    "cutout": 0,
+    "useOneColor": false,
+    "useUTC": false,
+    "colors": [
+      "#1f77b4",
+      "#aec7e8",
+      "#ff7f0e",
+      "#2ca02c",
+      "#98df8a",
+      "#d62728",
+      "#ff9896",
+      "#9467bd",
+      "#c5b0d5"
+    ],
+    "outputs": 1,
+    "x": 490,
+    "y": 460,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "019f98beaa347a75",
+    "type": "ui_chart",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "group": "61285987.c20328",
+    "order": 4,
+    "width": 0,
+    "height": 0,
+    "label": "Atmospheric pressure (hPa)",
+    "chartType": "line",
+    "legend": "false",
+    "xformat": "HH:mm:ss",
+    "interpolate": "linear",
+    "nodata": "",
+    "dot": false,
+    "ymin": "",
+    "ymax": "",
+    "removeOlder": 1,
+    "removeOlderPoints": "",
+    "removeOlderUnit": "3600",
+    "cutout": 0,
+    "useOneColor": false,
+    "useUTC": false,
+    "colors": [
+      "#1f77b4",
+      "#aec7e8",
+      "#ff7f0e",
+      "#2ca02c",
+      "#98df8a",
+      "#d62728",
+      "#ff9896",
+      "#9467bd",
+      "#c5b0d5"
+    ],
+    "outputs": 1,
+    "x": 520,
+    "y": 140,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "df5877ce53c68fa2",
+    "type": "mqtt in",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "topic": "esp32/radiation",
+    "qos": "2",
+    "datatype": "auto-detect",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": false,
+    "inputs": 0,
+    "x": 100,
+    "y": 560,
+    "wires": [
+      [
+        "5919fe6f39f21cbf"
+      ]
+    ]
+  },
+  {
+    "id": "926ea6fb088f7d91",
+    "type": "debug",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "active": false,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "false",
+    "x": 307,
+    "y": 527,
+    "wires": []
+  },
+  {
+    "id": "f5f39c8b365ce095",
+    "type": "ui_chart",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "group": "61285987.c20328",
+    "order": 1,
+    "width": 0,
+    "height": 0,
+    "label": "Counts per hour",
+    "chartType": "line",
+    "legend": "false",
+    "xformat": "HH:mm:ss",
+    "interpolate": "linear",
+    "nodata": "",
+    "dot": true,
+    "ymin": "",
+    "ymax": "",
+    "removeOlder": 24,
+    "removeOlderPoints": "",
+    "removeOlderUnit": "3600",
+    "cutout": 0,
+    "useOneColor": false,
+    "useUTC": false,
+    "colors": [
+      "#1f77b4",
+      "#aec7e8",
+      "#ff7f0e",
+      "#2ca02c",
+      "#98df8a",
+      "#d62728",
+      "#ff9896",
+      "#9467bd",
+      "#c5b0d5"
+    ],
+    "outputs": 1,
+    "x": 480,
+    "y": 580,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "b445f50146dc47d2",
+    "type": "mqtt in",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "topic": "esp32/approxaltitude",
+    "qos": "2",
+    "datatype": "auto-detect",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": false,
+    "inputs": 0,
+    "x": 110,
+    "y": 320,
+    "wires": [
+      [
+        "e8a56268427aa987"
+      ]
+    ]
+  },
+  {
+    "id": "0525954abe02e83f",
+    "type": "debug",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "active": false,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 297,
+    "y": 287,
+    "wires": []
+  },
+  {
+    "id": "96237b65c3701ae9",
+    "type": "ui_chart",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "group": "61285987.c20328",
+    "order": 5,
+    "width": 0,
+    "height": 0,
+    "label": "Approx. Altitude (m)",
+    "chartType": "line",
+    "legend": "false",
+    "xformat": "HH:mm:ss",
+    "interpolate": "linear",
+    "nodata": "",
+    "dot": false,
+    "ymin": "",
+    "ymax": "",
+    "removeOlder": 1,
+    "removeOlderPoints": "",
+    "removeOlderUnit": "3600",
+    "cutout": 0,
+    "useOneColor": false,
+    "useUTC": false,
+    "colors": [
+      "#1f77b4",
+      "#aec7e8",
+      "#ff7f0e",
+      "#2ca02c",
+      "#98df8a",
+      "#d62728",
+      "#ff9896",
+      "#9467bd",
+      "#c5b0d5"
+    ],
+    "outputs": 1,
+    "x": 490,
+    "y": 340,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "61611f3f37f197a6",
+    "type": "function",
+    "z": "51485792b6dd2f3b",
+    "name": "Query pressure",
+    "func": "const raw = Buffer.isBuffer(msg.payload) ? msg.payload.toString('utf8').trim() : msg.payload;\nconst decimal = /^[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?$/;\nif (typeof raw !== 'number' && (typeof raw !== 'string' || !decimal.test(raw.trim()))) {\n    node.warn('Invalid numeric sensor payload');\n    return null;\n}\nconst value = Number(raw);\nif (!Number.isFinite(value)) {\n    node.warn('Non-finite sensor payload');\n    return null;\n}\nconst time = new Date().toISOString().slice(0, 23).replace('T', ' ');\nconst sql = { topic: 'INSERT INTO ESP32PRESSURE (`time`, `pressure`) VALUES (:time, :value)', payload: {time, value} };\nconst display = Object.assign({}, msg, {payload: value});\nreturn [sql, display];",
+    "outputs": 2,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 180,
+    "y": 220,
+    "wires": [
+      [
+        "c331a544cb731b11"
+      ],
+      [
+        "321a72c07355e573",
+        "019f98beaa347a75"
+      ]
+    ]
+  },
+  {
+    "id": "c331a544cb731b11",
+    "type": "Stackhero-MySQL",
+    "z": "51485792b6dd2f3b",
+    "server": "a58548326a9bbdd9",
+    "name": "",
+    "x": 480,
+    "y": 220,
+    "wires": [
+      [
+        "f0a3240507f55fd0"
+      ]
+    ]
+  },
+  {
+    "id": "f0a3240507f55fd0",
+    "type": "debug",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "active": false,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "true",
+    "targetType": "full",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 670,
+    "y": 220,
+    "wires": []
+  },
+  {
+    "id": "e8a56268427aa987",
+    "type": "function",
+    "z": "51485792b6dd2f3b",
+    "name": "Query approxaltitude",
+    "func": "const raw = Buffer.isBuffer(msg.payload) ? msg.payload.toString('utf8').trim() : msg.payload;\nconst decimal = /^[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?$/;\nif (typeof raw !== 'number' && (typeof raw !== 'string' || !decimal.test(raw.trim()))) {\n    node.warn('Invalid numeric sensor payload');\n    return null;\n}\nconst value = Number(raw);\nif (!Number.isFinite(value)) {\n    node.warn('Non-finite sensor payload');\n    return null;\n}\nconst time = new Date().toISOString().slice(0, 23).replace('T', ' ');\nconst sql = { topic: 'INSERT INTO ESP32APPROXALTITUDE (`time`, `approxaltitude`) VALUES (:time, :value)', payload: {time, value} };\nconst display = Object.assign({}, msg, {payload: value});\nreturn [sql, display];",
+    "outputs": 2,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 200,
+    "y": 380,
+    "wires": [
+      [
+        "c331a544cb731b11"
+      ],
+      [
+        "0525954abe02e83f",
+        "96237b65c3701ae9"
+      ]
+    ]
+  },
+  {
+    "id": "08e10a2adcbfc041",
+    "type": "function",
+    "z": "51485792b6dd2f3b",
+    "name": "Query temperature",
+    "func": "const raw = Buffer.isBuffer(msg.payload) ? msg.payload.toString('utf8').trim() : msg.payload;\nconst decimal = /^[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?$/;\nif (typeof raw !== 'number' && (typeof raw !== 'string' || !decimal.test(raw.trim()))) {\n    node.warn('Invalid numeric sensor payload');\n    return null;\n}\nconst value = Number(raw);\nif (!Number.isFinite(value)) {\n    node.warn('Non-finite sensor payload');\n    return null;\n}\nconst time = new Date().toISOString().slice(0, 23).replace('T', ' ');\nconst sql = { topic: 'INSERT INTO ESP32TEMPERATURE (`time`, `temperature`) VALUES (:time, :value)', payload: {time, value} };\nconst display = Object.assign({}, msg, {payload: value});\nreturn [sql, display];",
+    "outputs": 2,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 190,
+    "y": 500,
+    "wires": [
+      [
+        "c331a544cb731b11"
+      ],
+      [
+        "f567bba193da45b6",
+        "42a63a1de07e9a54"
+      ]
+    ]
+  },
+  {
+    "id": "5919fe6f39f21cbf",
+    "type": "function",
+    "z": "51485792b6dd2f3b",
+    "name": "Query radiation",
+    "func": "const raw = Buffer.isBuffer(msg.payload) ? msg.payload.toString('utf8').trim() : msg.payload;\nconst decimal = /^[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?$/;\nif (typeof raw !== 'number' && (typeof raw !== 'string' || !decimal.test(raw.trim()))) {\n    node.warn('Invalid numeric sensor payload');\n    return null;\n}\nconst value = Number(raw);\nif (!Number.isFinite(value)) {\n    node.warn('Non-finite sensor payload');\n    return null;\n}\nconst time = new Date().toISOString().slice(0, 23).replace('T', ' ');\nconst sql = { topic: 'INSERT INTO ESP32RADIATION (`time`, `radiation`) VALUES (:time, :value)', payload: {time, value} };\nconst display = Object.assign({}, msg, {payload: value});\nreturn [sql, display];",
+    "outputs": 2,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 180,
+    "y": 620,
+    "wires": [
+      [
+        "c331a544cb731b11"
+      ],
+      [
+        "926ea6fb088f7d91",
+        "f5f39c8b365ce095"
+      ]
+    ]
+  },
+  {
+    "id": "61e7884eb10004a9",
+    "type": "mqtt in",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "topic": "esp32/voltage",
+    "qos": "2",
+    "datatype": "auto-detect",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": false,
+    "inputs": 0,
+    "x": 90,
+    "y": 700,
+    "wires": [
+      [
+        "72e9fa5c289324bc"
+      ]
+    ]
+  },
+  {
+    "id": "72e9fa5c289324bc",
+    "type": "function",
+    "z": "51485792b6dd2f3b",
+    "name": "Query voltage",
+    "func": "const raw = Buffer.isBuffer(msg.payload) ? msg.payload.toString('utf8').trim() : msg.payload;\nconst decimal = /^[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?$/;\nif (typeof raw !== 'number' && (typeof raw !== 'string' || !decimal.test(raw.trim()))) {\n    node.warn('Invalid numeric sensor payload');\n    return null;\n}\nconst value = Number(raw);\nif (!Number.isFinite(value)) {\n    node.warn('Non-finite sensor payload');\n    return null;\n}\nconst time = new Date().toISOString().slice(0, 23).replace('T', ' ');\nconst sql = { topic: 'INSERT INTO ESP32VOLTAGE (`time`, `voltage`) VALUES (:time, :value)', payload: {time, value} };\nconst display = Object.assign({}, msg, {payload: value});\nreturn [sql, display];",
+    "outputs": 2,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 180,
+    "y": 760,
+    "wires": [
+      [
+        "c331a544cb731b11"
+      ],
+      [
+        "a446cbf369e32851",
+        "4ff7423db33cda40"
+      ]
+    ]
+  },
+  {
+    "id": "a446cbf369e32851",
+    "type": "debug",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "active": false,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "false",
+    "x": 290,
+    "y": 660,
+    "wires": []
+  },
+  {
+    "id": "4ff7423db33cda40",
+    "type": "ui_chart",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "group": "61285987.c20328",
+    "order": 6,
+    "width": 0,
+    "height": 0,
+    "label": "Power supply voltage",
+    "chartType": "line",
+    "legend": "false",
+    "xformat": "HH:mm:ss",
+    "interpolate": "linear",
+    "nodata": "",
+    "dot": false,
+    "ymin": "",
+    "ymax": "",
+    "removeOlder": 1,
+    "removeOlderPoints": "",
+    "removeOlderUnit": "3600",
+    "cutout": 0,
+    "useOneColor": false,
+    "useUTC": false,
+    "colors": [
+      "#1f77b4",
+      "#aec7e8",
+      "#ff7f0e",
+      "#2ca02c",
+      "#98df8a",
+      "#d62728",
+      "#ff9896",
+      "#9467bd",
+      "#c5b0d5"
+    ],
+    "outputs": 1,
+    "x": 460,
+    "y": 720,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "2c56e38c2629c205",
+    "type": "mqtt in",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "topic": "esp32/humidity",
+    "qos": "2",
+    "datatype": "auto-detect",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": false,
+    "inputs": 0,
+    "x": 100,
+    "y": 860,
+    "wires": [
+      [
+        "a2845307d1ca54da"
+      ]
+    ]
+  },
+  {
+    "id": "9ae5f73eab5bc9fa",
+    "type": "debug",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "active": false,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "false",
+    "x": 290,
+    "y": 820,
+    "wires": []
+  },
+  {
+    "id": "a2845307d1ca54da",
+    "type": "function",
+    "z": "51485792b6dd2f3b",
+    "name": "Query humidity",
+    "func": "const raw = Buffer.isBuffer(msg.payload) ? msg.payload.toString('utf8').trim() : msg.payload;\nconst decimal = /^[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?$/;\nif (typeof raw !== 'number' && (typeof raw !== 'string' || !decimal.test(raw.trim()))) {\n    node.warn('Invalid numeric sensor payload');\n    return null;\n}\nconst value = Number(raw);\nif (!Number.isFinite(value)) {\n    node.warn('Non-finite sensor payload');\n    return null;\n}\nconst time = new Date().toISOString().slice(0, 23).replace('T', ' ');\nconst sql = { topic: 'INSERT INTO ESP32HUMIDITY (`time`, `humidity`) VALUES (:time, :value)', payload: {time, value} };\nconst display = Object.assign({}, msg, {payload: value});\nreturn [sql, display];",
+    "outputs": 2,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 180,
+    "y": 920,
+    "wires": [
+      [
+        "c331a544cb731b11"
+      ],
+      [
+        "9ae5f73eab5bc9fa",
+        "6173b59d32547ef9"
+      ]
+    ]
+  },
+  {
+    "id": "6173b59d32547ef9",
+    "type": "ui_chart",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "group": "61285987.c20328",
+    "order": 7,
+    "width": 0,
+    "height": 0,
+    "label": "Humidity (%)",
+    "chartType": "line",
+    "legend": "false",
+    "xformat": "HH:mm:ss",
+    "interpolate": "linear",
+    "nodata": "",
+    "dot": false,
+    "ymin": "",
+    "ymax": "",
+    "removeOlder": 1,
+    "removeOlderPoints": "",
+    "removeOlderUnit": "3600",
+    "cutout": 0,
+    "useOneColor": false,
+    "useUTC": false,
+    "colors": [
+      "#1f77b4",
+      "#aec7e8",
+      "#ff7f0e",
+      "#2ca02c",
+      "#98df8a",
+      "#d62728",
+      "#ff9896",
+      "#9467bd",
+      "#c5b0d5"
+    ],
+    "outputs": 1,
+    "x": 430,
+    "y": 880,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "12709f12be2b4f30",
+    "type": "mqtt in",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "topic": "esp32/temphum",
+    "qos": "2",
+    "datatype": "auto-detect",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": false,
+    "inputs": 0,
+    "x": 100,
+    "y": 1020,
+    "wires": [
+      [
+        "46c8bd0a010dcd33"
+      ]
+    ]
+  },
+  {
+    "id": "46c8bd0a010dcd33",
+    "type": "function",
+    "z": "51485792b6dd2f3b",
+    "name": "Query temperature humidity",
+    "func": "const raw = Buffer.isBuffer(msg.payload) ? msg.payload.toString('utf8').trim() : msg.payload;\nconst decimal = /^[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?$/;\nif (typeof raw !== 'number' && (typeof raw !== 'string' || !decimal.test(raw.trim()))) {\n    node.warn('Invalid numeric sensor payload');\n    return null;\n}\nconst value = Number(raw);\nif (!Number.isFinite(value)) {\n    node.warn('Non-finite sensor payload');\n    return null;\n}\nconst time = new Date().toISOString().slice(0, 23).replace('T', ' ');\nconst sql = { topic: 'INSERT INTO ESP32TEMPHUM (`time`, `temphum`) VALUES (:time, :value)', payload: {time, value} };\nconst display = Object.assign({}, msg, {payload: value});\nreturn [sql, display];",
+    "outputs": 2,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 220,
+    "y": 1080,
+    "wires": [
+      [
+        "c331a544cb731b11"
+      ],
+      [
+        "5ecefa794d9c39aa",
+        "35e89891a4e2af79"
+      ]
+    ]
+  },
+  {
+    "id": "5ecefa794d9c39aa",
+    "type": "ui_chart",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "group": "61285987.c20328",
+    "order": 8,
+    "width": 0,
+    "height": 0,
+    "label": "Temperature Humidity Sensor (ºC)",
+    "chartType": "line",
+    "legend": "false",
+    "xformat": "HH:mm:ss",
+    "interpolate": "linear",
+    "nodata": "",
+    "dot": false,
+    "ymin": "",
+    "ymax": "",
+    "removeOlder": 1,
+    "removeOlderPoints": "",
+    "removeOlderUnit": "3600",
+    "cutout": 0,
+    "useOneColor": false,
+    "useUTC": false,
+    "colors": [
+      "#1f77b4",
+      "#aec7e8",
+      "#ff7f0e",
+      "#2ca02c",
+      "#98df8a",
+      "#d62728",
+      "#ff9896",
+      "#9467bd",
+      "#c5b0d5"
+    ],
+    "outputs": 1,
+    "x": 500,
+    "y": 1020,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "24fd98311368b288",
+    "type": "mqtt in",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "topic": "esp32/lat_dd",
+    "qos": "2",
+    "datatype": "auto-detect",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": false,
+    "inputs": 0,
+    "x": 90,
+    "y": 1180,
+    "wires": [
+      [
+        "9f7d175d7b5d8a7a"
+      ]
+    ]
+  },
+  {
+    "id": "fa811d96504c0a3d",
+    "type": "debug",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "active": false,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "false",
+    "x": 290,
+    "y": 1140,
+    "wires": []
+  },
+  {
+    "id": "9f7d175d7b5d8a7a",
+    "type": "function",
+    "z": "51485792b6dd2f3b",
+    "name": "Query lat",
+    "func": "const raw = Buffer.isBuffer(msg.payload) ? msg.payload.toString('utf8').trim() : msg.payload;\nconst decimal = /^[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?$/;\nif (typeof raw !== 'number' && (typeof raw !== 'string' || !decimal.test(raw.trim()))) {\n    node.warn('Invalid numeric sensor payload');\n    return null;\n}\nconst value = Number(raw);\nif (!Number.isFinite(value)) {\n    node.warn('Non-finite sensor payload');\n    return null;\n}\nconst time = new Date().toISOString().slice(0, 23).replace('T', ' ');\nconst sql = { topic: 'INSERT INTO ESP32LAT_DD (`time`, `lat_dd`) VALUES (:time, :value)', payload: {time, value} };\nconst display = Object.assign({}, msg, {payload: value});\nreturn [sql, display];",
+    "outputs": 2,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 160,
+    "y": 1240,
+    "wires": [
+      [
+        "c331a544cb731b11"
+      ],
+      [
+        "fa811d96504c0a3d",
+        "026ed9f4de15b11b"
+      ]
+    ]
+  },
+  {
+    "id": "026ed9f4de15b11b",
+    "type": "ui_chart",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "group": "61285987.c20328",
+    "order": 9,
+    "width": 0,
+    "height": 0,
+    "label": "Latitude",
+    "chartType": "line",
+    "legend": "false",
+    "xformat": "HH:mm:ss",
+    "interpolate": "linear",
+    "nodata": "",
+    "dot": false,
+    "ymin": "",
+    "ymax": "",
+    "removeOlder": 1,
+    "removeOlderPoints": "",
+    "removeOlderUnit": "3600",
+    "cutout": 0,
+    "useOneColor": false,
+    "useUTC": false,
+    "colors": [
+      "#1f77b4",
+      "#aec7e8",
+      "#ff7f0e",
+      "#2ca02c",
+      "#98df8a",
+      "#d62728",
+      "#ff9896",
+      "#9467bd",
+      "#c5b0d5"
+    ],
+    "outputs": 1,
+    "x": 420,
+    "y": 1200,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "cf0db28f7fb836ba",
+    "type": "mqtt in",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "topic": "esp32/lon_dd",
+    "qos": "2",
+    "datatype": "auto-detect",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": false,
+    "inputs": 0,
+    "x": 90,
+    "y": 1340,
+    "wires": [
+      [
+        "ae43dbec6178527f"
+      ]
+    ]
+  },
+  {
+    "id": "57a05c7bdd18563f",
+    "type": "debug",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "active": false,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "false",
+    "x": 290,
+    "y": 1300,
+    "wires": []
+  },
+  {
+    "id": "ae43dbec6178527f",
+    "type": "function",
+    "z": "51485792b6dd2f3b",
+    "name": "Query lon",
+    "func": "const raw = Buffer.isBuffer(msg.payload) ? msg.payload.toString('utf8').trim() : msg.payload;\nconst decimal = /^[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?$/;\nif (typeof raw !== 'number' && (typeof raw !== 'string' || !decimal.test(raw.trim()))) {\n    node.warn('Invalid numeric sensor payload');\n    return null;\n}\nconst value = Number(raw);\nif (!Number.isFinite(value)) {\n    node.warn('Non-finite sensor payload');\n    return null;\n}\nconst time = new Date().toISOString().slice(0, 23).replace('T', ' ');\nconst sql = { topic: 'INSERT INTO ESP32LON_DD (`time`, `lon_dd`) VALUES (:time, :value)', payload: {time, value} };\nconst display = Object.assign({}, msg, {payload: value});\nreturn [sql, display];",
+    "outputs": 2,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 160,
+    "y": 1400,
+    "wires": [
+      [
+        "c331a544cb731b11"
+      ],
+      [
+        "57a05c7bdd18563f",
+        "cb5517c7ec93b47a"
+      ]
+    ]
+  },
+  {
+    "id": "cb5517c7ec93b47a",
+    "type": "ui_chart",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "group": "61285987.c20328",
+    "order": 10,
+    "width": 0,
+    "height": 0,
+    "label": "Longitude",
+    "chartType": "line",
+    "legend": "false",
+    "xformat": "HH:mm:ss",
+    "interpolate": "linear",
+    "nodata": "",
+    "dot": false,
+    "ymin": "",
+    "ymax": "",
+    "removeOlder": 1,
+    "removeOlderPoints": "",
+    "removeOlderUnit": "3600",
+    "cutout": 0,
+    "useOneColor": false,
+    "useUTC": false,
+    "colors": [
+      "#1f77b4",
+      "#aec7e8",
+      "#ff7f0e",
+      "#2ca02c",
+      "#98df8a",
+      "#d62728",
+      "#ff9896",
+      "#9467bd",
+      "#c5b0d5"
+    ],
+    "outputs": 1,
+    "x": 420,
+    "y": 1360,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "35e89891a4e2af79",
+    "type": "debug",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "active": false,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "false",
+    "x": 290,
+    "y": 960,
+    "wires": []
+  },
+  {
+    "id": "2d535ecfdcc974bb",
+    "type": "mqtt in",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "topic": "esp32/timestamp",
+    "qos": "2",
+    "datatype": "auto-detect",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": false,
+    "inputs": 0,
+    "x": 100,
+    "y": 1500,
+    "wires": [
+      [
+        "32389fc9ad363814"
+      ]
+    ]
+  },
+  {
+    "id": "54c832672e2b3b0d",
+    "type": "debug",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "active": false,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 290,
+    "y": 1460,
+    "wires": []
+  },
+  {
+    "id": "32389fc9ad363814",
+    "type": "function",
+    "z": "51485792b6dd2f3b",
+    "name": "Query timestamp",
+    "func": "const raw = Buffer.isBuffer(msg.payload) ? msg.payload.toString('utf8').trim() : msg.payload;\nlet candidate;\nif (typeof raw === 'number' && Number.isFinite(raw)) {\n    candidate = raw; // Explicit UTC Unix milliseconds, not seconds.\n} else if (typeof raw === 'string' && /^\\d{4}-\\d{2}-\\d{2}T.*(?:Z|[+-]\\d{2}:\\d{2})$/i.test(raw.trim())) {\n    candidate = raw.trim();\n} else {\n    node.warn('Timestamp requires ISO 8601 with timezone or Unix milliseconds');\n    return null;\n}\nconst date = new Date(candidate);\nif (!Number.isFinite(date.getTime()) || date.getUTCFullYear() < 1000 || date.getUTCFullYear() > 9999) {\n    node.warn('Invalid timestamp sensor payload');\n    return null;\n}\nconst value = date.toISOString().slice(0, 23).replace('T', ' ');\nconst time = new Date().toISOString().slice(0, 23).replace('T', ' ');\nconst sql = { topic: 'INSERT INTO ESP32TIMESTAMP (`time`, `timestamp`) VALUES (:time, :value)', payload: {time, value} };\nconst display = Object.assign({}, msg, {payload: value});\nreturn [sql, display];",
+    "outputs": 2,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 190,
+    "y": 1560,
+    "wires": [
+      [
+        "c331a544cb731b11"
+      ],
+      [
+        "54c832672e2b3b0d"
+      ]
+    ]
+  },
+  {
+    "id": "3725d1cd9ff5b4a1",
+    "type": "mqtt in",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "topic": "esp32/magx",
+    "qos": "2",
+    "datatype": "auto-detect",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": false,
+    "inputs": 0,
+    "x": 750,
+    "y": 300,
+    "wires": [
+      [
+        "82f983664a085174"
+      ]
+    ]
+  },
+  {
+    "id": "1877abf6f6c62fa7",
+    "type": "debug",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "active": false,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "false",
+    "x": 950,
+    "y": 260,
+    "wires": []
+  },
+  {
+    "id": "82f983664a085174",
+    "type": "function",
+    "z": "51485792b6dd2f3b",
+    "name": "Query mag X",
+    "func": "const raw = Buffer.isBuffer(msg.payload) ? msg.payload.toString('utf8').trim() : msg.payload;\nconst decimal = /^[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?$/;\nif (typeof raw !== 'number' && (typeof raw !== 'string' || !decimal.test(raw.trim()))) {\n    node.warn('Invalid numeric sensor payload');\n    return null;\n}\nconst value = Number(raw);\nif (!Number.isFinite(value)) {\n    node.warn('Non-finite sensor payload');\n    return null;\n}\nconst time = new Date().toISOString().slice(0, 23).replace('T', ' ');\nconst sql = { topic: 'INSERT INTO ESP32MAGX (`time`, `magx`) VALUES (:time, :value)', payload: {time, value} };\nconst display = Object.assign({}, msg, {payload: value});\nreturn [sql, display];",
+    "outputs": 2,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 830,
+    "y": 360,
+    "wires": [
+      [
+        "c331a544cb731b11"
+      ],
+      [
+        "1877abf6f6c62fa7",
+        "4031a4dfd169e4ee"
+      ]
+    ]
+  },
+  {
+    "id": "4031a4dfd169e4ee",
+    "type": "ui_chart",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "group": "61285987.c20328",
+    "order": 11,
+    "width": 0,
+    "height": 0,
+    "label": "Magnetic Field X uT",
+    "chartType": "line",
+    "legend": "false",
+    "xformat": "HH:mm:ss",
+    "interpolate": "linear",
+    "nodata": "",
+    "dot": false,
+    "ymin": "",
+    "ymax": "",
+    "removeOlder": 1,
+    "removeOlderPoints": "",
+    "removeOlderUnit": "3600",
+    "cutout": 0,
+    "useOneColor": false,
+    "useUTC": false,
+    "colors": [
+      "#1f77b4",
+      "#aec7e8",
+      "#ff7f0e",
+      "#2ca02c",
+      "#98df8a",
+      "#d62728",
+      "#ff9896",
+      "#9467bd",
+      "#c5b0d5"
+    ],
+    "outputs": 1,
+    "x": 1120,
+    "y": 320,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "a6e5aa1887e83d26",
+    "type": "mqtt in",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "topic": "esp32/magy",
+    "qos": "2",
+    "datatype": "auto-detect",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": false,
+    "inputs": 0,
+    "x": 750,
+    "y": 480,
+    "wires": [
+      [
+        "03341b9544f31f05"
+      ]
+    ]
+  },
+  {
+    "id": "ec3af27d2d4ba125",
+    "type": "debug",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "active": false,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "false",
+    "x": 950,
+    "y": 440,
+    "wires": []
+  },
+  {
+    "id": "03341b9544f31f05",
+    "type": "function",
+    "z": "51485792b6dd2f3b",
+    "name": "Query mag Y",
+    "func": "const raw = Buffer.isBuffer(msg.payload) ? msg.payload.toString('utf8').trim() : msg.payload;\nconst decimal = /^[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?$/;\nif (typeof raw !== 'number' && (typeof raw !== 'string' || !decimal.test(raw.trim()))) {\n    node.warn('Invalid numeric sensor payload');\n    return null;\n}\nconst value = Number(raw);\nif (!Number.isFinite(value)) {\n    node.warn('Non-finite sensor payload');\n    return null;\n}\nconst time = new Date().toISOString().slice(0, 23).replace('T', ' ');\nconst sql = { topic: 'INSERT INTO ESP32MAGY (`time`, `magy`) VALUES (:time, :value)', payload: {time, value} };\nconst display = Object.assign({}, msg, {payload: value});\nreturn [sql, display];",
+    "outputs": 2,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 830,
+    "y": 540,
+    "wires": [
+      [
+        "c331a544cb731b11"
+      ],
+      [
+        "ec3af27d2d4ba125",
+        "6251cfba8422d3aa"
+      ]
+    ]
+  },
+  {
+    "id": "6251cfba8422d3aa",
+    "type": "ui_chart",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "group": "61285987.c20328",
+    "order": 12,
+    "width": 0,
+    "height": 0,
+    "label": "Magnetic Field Y uT",
+    "chartType": "line",
+    "legend": "false",
+    "xformat": "HH:mm:ss",
+    "interpolate": "linear",
+    "nodata": "",
+    "dot": false,
+    "ymin": "",
+    "ymax": "",
+    "removeOlder": 1,
+    "removeOlderPoints": "",
+    "removeOlderUnit": "3600",
+    "cutout": 0,
+    "useOneColor": false,
+    "useUTC": false,
+    "colors": [
+      "#1f77b4",
+      "#aec7e8",
+      "#ff7f0e",
+      "#2ca02c",
+      "#98df8a",
+      "#d62728",
+      "#ff9896",
+      "#9467bd",
+      "#c5b0d5"
+    ],
+    "outputs": 1,
+    "x": 1120,
+    "y": 500,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "47196b1193ec0f74",
+    "type": "mqtt in",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "topic": "esp32/magz",
+    "qos": "2",
+    "datatype": "auto-detect",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": false,
+    "inputs": 0,
+    "x": 750,
+    "y": 660,
+    "wires": [
+      [
+        "e1c6a90297859496"
+      ]
+    ]
+  },
+  {
+    "id": "10725064343bdfad",
+    "type": "debug",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "active": false,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "false",
+    "x": 950,
+    "y": 620,
+    "wires": []
+  },
+  {
+    "id": "e1c6a90297859496",
+    "type": "function",
+    "z": "51485792b6dd2f3b",
+    "name": "Query mag Z",
+    "func": "const raw = Buffer.isBuffer(msg.payload) ? msg.payload.toString('utf8').trim() : msg.payload;\nconst decimal = /^[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?$/;\nif (typeof raw !== 'number' && (typeof raw !== 'string' || !decimal.test(raw.trim()))) {\n    node.warn('Invalid numeric sensor payload');\n    return null;\n}\nconst value = Number(raw);\nif (!Number.isFinite(value)) {\n    node.warn('Non-finite sensor payload');\n    return null;\n}\nconst time = new Date().toISOString().slice(0, 23).replace('T', ' ');\nconst sql = { topic: 'INSERT INTO ESP32MAGZ (`time`, `magz`) VALUES (:time, :value)', payload: {time, value} };\nconst display = Object.assign({}, msg, {payload: value});\nreturn [sql, display];",
+    "outputs": 2,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 830,
+    "y": 720,
+    "wires": [
+      [
+        "c331a544cb731b11"
+      ],
+      [
+        "10725064343bdfad",
+        "b1aa79ac495c8500"
+      ]
+    ]
+  },
+  {
+    "id": "b1aa79ac495c8500",
+    "type": "ui_chart",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "group": "61285987.c20328",
+    "order": 13,
+    "width": 0,
+    "height": 0,
+    "label": "Magnetic Field Z uT",
+    "chartType": "line",
+    "legend": "false",
+    "xformat": "HH:mm:ss",
+    "interpolate": "linear",
+    "nodata": "",
+    "dot": false,
+    "ymin": "",
+    "ymax": "",
+    "removeOlder": 1,
+    "removeOlderPoints": "",
+    "removeOlderUnit": "3600",
+    "cutout": 0,
+    "useOneColor": false,
+    "useUTC": false,
+    "colors": [
+      "#1f77b4",
+      "#aec7e8",
+      "#ff7f0e",
+      "#2ca02c",
+      "#98df8a",
+      "#d62728",
+      "#ff9896",
+      "#9467bd",
+      "#c5b0d5"
+    ],
+    "outputs": 1,
+    "x": 1120,
+    "y": 680,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "781a91f5f4088c8d",
+    "type": "mqtt in",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "topic": "esp32/magangle",
+    "qos": "2",
+    "datatype": "auto-detect",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": false,
+    "inputs": 0,
+    "x": 760,
+    "y": 820,
+    "wires": [
+      [
+        "e5af58e9cabb7303"
+      ]
+    ]
+  },
+  {
+    "id": "4b7c11a2ae3d0e06",
+    "type": "debug",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "active": false,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "false",
+    "x": 950,
+    "y": 780,
+    "wires": []
+  },
+  {
+    "id": "e5af58e9cabb7303",
+    "type": "function",
+    "z": "51485792b6dd2f3b",
+    "name": "Query mag Angle",
+    "func": "const raw = Buffer.isBuffer(msg.payload) ? msg.payload.toString('utf8').trim() : msg.payload;\nconst decimal = /^[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?$/;\nif (typeof raw !== 'number' && (typeof raw !== 'string' || !decimal.test(raw.trim()))) {\n    node.warn('Invalid numeric sensor payload');\n    return null;\n}\nconst value = Number(raw);\nif (!Number.isFinite(value)) {\n    node.warn('Non-finite sensor payload');\n    return null;\n}\nconst time = new Date().toISOString().slice(0, 23).replace('T', ' ');\nconst sql = { topic: 'INSERT INTO ESP32MAGANGLE (`time`, `magxangle`) VALUES (:time, :value)', payload: {time, value} };\nconst display = Object.assign({}, msg, {payload: value});\nreturn [sql, display];",
+    "outputs": 2,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 870,
+    "y": 900,
+    "wires": [
+      [
+        "c331a544cb731b11"
+      ],
+      [
+        "4b7c11a2ae3d0e06",
+        "909573586b69bc50"
+      ]
+    ]
+  },
+  {
+    "id": "909573586b69bc50",
+    "type": "ui_chart",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "group": "61285987.c20328",
+    "order": 14,
+    "width": 0,
+    "height": 0,
+    "label": "Heading in degrees",
+    "chartType": "line",
+    "legend": "false",
+    "xformat": "HH:mm:ss",
+    "interpolate": "linear",
+    "nodata": "",
+    "dot": false,
+    "ymin": "",
+    "ymax": "",
+    "removeOlder": 1,
+    "removeOlderPoints": "",
+    "removeOlderUnit": "3600",
+    "cutout": 0,
+    "useOneColor": false,
+    "useUTC": false,
+    "colors": [
+      "#1f77b4",
+      "#aec7e8",
+      "#ff7f0e",
+      "#2ca02c",
+      "#98df8a",
+      "#d62728",
+      "#ff9896",
+      "#9467bd",
+      "#c5b0d5"
+    ],
+    "outputs": 1,
+    "x": 1110,
+    "y": 840,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "ef50b13d2079693a",
+    "type": "mqtt in",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "topic": "esp32/hall",
+    "qos": "2",
+    "datatype": "auto-detect",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": false,
+    "inputs": 0,
+    "x": 780,
+    "y": 100,
+    "wires": [
+      [
+        "c00e62c4e93bea50"
+      ]
+    ]
+  },
+  {
+    "id": "976d99b3b75f8c1f",
+    "type": "debug",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "active": false,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "false",
+    "x": 990,
+    "y": 60,
+    "wires": []
+  },
+  {
+    "id": "c00e62c4e93bea50",
+    "type": "function",
+    "z": "51485792b6dd2f3b",
+    "name": "Query hall ESP32",
+    "func": "const raw = Buffer.isBuffer(msg.payload) ? msg.payload.toString('utf8').trim() : msg.payload;\nconst decimal = /^[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?$/;\nif (typeof raw !== 'number' && (typeof raw !== 'string' || !decimal.test(raw.trim()))) {\n    node.warn('Invalid numeric sensor payload');\n    return null;\n}\nconst value = Number(raw);\nif (!Number.isFinite(value)) {\n    node.warn('Non-finite sensor payload');\n    return null;\n}\nconst time = new Date().toISOString().slice(0, 23).replace('T', ' ');\nconst sql = { topic: 'INSERT INTO ESP32HALL (`time`, `hall`) VALUES (:time, :value)', payload: {time, value} };\nconst display = Object.assign({}, msg, {payload: value});\nreturn [sql, display];",
+    "outputs": 2,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 890,
+    "y": 160,
+    "wires": [
+      [
+        "c331a544cb731b11"
+      ],
+      [
+        "976d99b3b75f8c1f",
+        "d1b9af301f657c9f"
+      ]
+    ]
+  },
+  {
+    "id": "d1b9af301f657c9f",
+    "type": "ui_chart",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "group": "61285987.c20328",
+    "order": 15,
+    "width": 0,
+    "height": 0,
+    "label": "ESP32 HALL Sensor reading",
+    "chartType": "line",
+    "legend": "false",
+    "xformat": "HH:mm:ss",
+    "interpolate": "linear",
+    "nodata": "",
+    "dot": false,
+    "ymin": "",
+    "ymax": "",
+    "removeOlder": 1,
+    "removeOlderPoints": "",
+    "removeOlderUnit": "3600",
+    "cutout": 0,
+    "useOneColor": false,
+    "useUTC": false,
+    "colors": [
+      "#1f77b4",
+      "#aec7e8",
+      "#ff7f0e",
+      "#2ca02c",
+      "#98df8a",
+      "#d62728",
+      "#ff9896",
+      "#9467bd",
+      "#c5b0d5"
+    ],
+    "outputs": 1,
+    "x": 1180,
+    "y": 120,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "d7994f8256ef4e83",
+    "type": "mqtt in",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "topic": "esp32/inttemp",
+    "qos": "2",
+    "datatype": "auto-detect",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": false,
+    "inputs": 0,
+    "x": 1270,
+    "y": 220,
+    "wires": [
+      [
+        "3b7545797ca0207b"
+      ]
+    ]
+  },
+  {
+    "id": "494ac8ccee93a42d",
+    "type": "debug",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "active": false,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "false",
+    "x": 1470,
+    "y": 180,
+    "wires": []
+  },
+  {
+    "id": "3b7545797ca0207b",
+    "type": "function",
+    "z": "51485792b6dd2f3b",
+    "name": "Query temp ESP32",
+    "func": "const raw = Buffer.isBuffer(msg.payload) ? msg.payload.toString('utf8').trim() : msg.payload;\nconst decimal = /^[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?$/;\nif (typeof raw !== 'number' && (typeof raw !== 'string' || !decimal.test(raw.trim()))) {\n    node.warn('Invalid numeric sensor payload');\n    return null;\n}\nconst value = Number(raw);\nif (!Number.isFinite(value)) {\n    node.warn('Non-finite sensor payload');\n    return null;\n}\nconst time = new Date().toISOString().slice(0, 23).replace('T', ' ');\nconst sql = { topic: 'INSERT INTO ESP32INTTEMP (`time`, `intTemp`) VALUES (:time, :value)', payload: {time, value} };\nconst display = Object.assign({}, msg, {payload: value});\nreturn [sql, display];",
+    "outputs": 2,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 1370,
+    "y": 280,
+    "wires": [
+      [
+        "c331a544cb731b11"
+      ],
+      [
+        "494ac8ccee93a42d",
+        "2466dcb4191fedd7"
+      ]
+    ]
+  },
+  {
+    "id": "2466dcb4191fedd7",
+    "type": "ui_chart",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "group": "61285987.c20328",
+    "order": 16,
+    "width": 0,
+    "height": 0,
+    "label": "ESP32 Temperature reading",
+    "chartType": "line",
+    "legend": "false",
+    "xformat": "HH:mm:ss",
+    "interpolate": "linear",
+    "nodata": "",
+    "dot": false,
+    "ymin": "",
+    "ymax": "",
+    "removeOlder": 1,
+    "removeOlderPoints": "",
+    "removeOlderUnit": "3600",
+    "cutout": 0,
+    "useOneColor": false,
+    "useUTC": false,
+    "colors": [
+      "#1f77b4",
+      "#aec7e8",
+      "#ff7f0e",
+      "#2ca02c",
+      "#98df8a",
+      "#d62728",
+      "#ff9896",
+      "#9467bd",
+      "#c5b0d5"
+    ],
+    "outputs": 1,
+    "x": 1660,
+    "y": 240,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "10e78a89.5b4fd5",
+    "type": "mqtt-broker",
+    "name": "MQTT broker - configure locally",
+    "broker": "localhost",
+    "port": "1883",
+    "clientid": "",
+    "autoConnect": true,
+    "usetls": false,
+    "protocolVersion": "4",
+    "keepalive": "60",
+    "cleansession": true,
+    "birthTopic": "",
+    "birthQos": "0",
+    "birthPayload": "",
+    "birthMsg": {},
+    "closeTopic": "",
+    "closeQos": "0",
+    "closePayload": "",
+    "closeMsg": {},
+    "willTopic": "",
+    "willQos": "0",
+    "willPayload": "",
+    "willMsg": {},
+    "userProps": "",
+    "sessionExpiry": ""
+  },
+  {
+    "id": "61285987.c20328",
+    "type": "ui_group",
+    "name": "Main",
+    "tab": "e7c46d5e.a1283",
+    "order": 1,
+    "disp": true,
+    "width": "6",
+    "collapse": false
+  },
+  {
+    "id": "a58548326a9bbdd9",
+    "type": "Stackhero-MySQL-Server",
+    "name": "MySQL - configure locally",
+    "host": "localhost",
+    "port": "3306",
+    "tls": false,
+    "database": "nodered"
+  },
+  {
+    "id": "e7c46d5e.a1283",
+    "type": "ui_tab",
+    "name": "Dashboard",
+    "icon": "dashboard",
+    "order": 2,
+    "disabled": false,
+    "hidden": false
+  },
+  {
+    "id": "c0ffee0000000001",
+    "type": "mqtt in",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "topic": "esp32/cpm",
+    "qos": "2",
+    "datatype": "auto-detect",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": false,
+    "inputs": 0,
+    "x": 100,
+    "y": 2020,
+    "wires": [
+      [
+        "c0ffee0000000004"
+      ]
+    ]
+  },
+  {
+    "id": "c0ffee0000000002",
+    "type": "debug",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "active": false,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "false",
+    "x": 307,
+    "y": 2060,
+    "wires": []
+  },
+  {
+    "id": "c0ffee0000000003",
+    "type": "ui_chart",
+    "z": "51485792b6dd2f3b",
+    "name": "",
+    "group": "61285987.c20328",
+    "order": 2,
+    "width": 0,
+    "height": 0,
+    "label": "Counts per minute (CPM)",
+    "chartType": "line",
+    "legend": "false",
+    "xformat": "HH:mm:ss",
+    "interpolate": "linear",
+    "nodata": "",
+    "dot": true,
+    "ymin": "",
+    "ymax": "",
+    "removeOlder": 24,
+    "removeOlderPoints": "",
+    "removeOlderUnit": "3600",
+    "cutout": 0,
+    "useOneColor": false,
+    "useUTC": false,
+    "colors": [
+      "#1f77b4",
+      "#aec7e8",
+      "#ff7f0e",
+      "#2ca02c",
+      "#98df8a",
+      "#d62728",
+      "#ff9896",
+      "#9467bd",
+      "#c5b0d5"
+    ],
+    "outputs": 1,
+    "x": 480,
+    "y": 2060,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "c0ffee0000000004",
+    "type": "function",
+    "z": "51485792b6dd2f3b",
+    "name": "Query CPM",
+    "func": "const raw = Buffer.isBuffer(msg.payload) ? msg.payload.toString('utf8').trim() : msg.payload;\nconst decimal = /^[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?$/;\nif (typeof raw !== 'number' && (typeof raw !== 'string' || !decimal.test(raw.trim()))) {\n    node.warn('Invalid numeric sensor payload');\n    return null;\n}\nconst value = Number(raw);\nif (!Number.isFinite(value)) {\n    node.warn('Non-finite sensor payload');\n    return null;\n}\nconst time = new Date().toISOString().slice(0, 23).replace('T', ' ');\nconst sql = { topic: 'INSERT INTO ESP32CPM (`time`, `cpm`) VALUES (:time, :value)', payload: {time, value} };\nconst display = Object.assign({}, msg, {payload: value});\nreturn [sql, display];",
+    "outputs": 2,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 180,
+    "y": 2060,
+    "wires": [
+      [
+        "c331a544cb731b11"
+      ],
+      [
+        "c0ffee0000000002",
+        "c0ffee0000000003"
+      ]
+    ]
+  },
+  {
+    "id": "c0ffee00000000f1",
+    "type": "catch",
+    "z": "51485792b6dd2f3b",
+    "name": "Database errors",
+    "scope": [
+      "c331a544cb731b11"
+    ],
+    "uncaught": false,
+    "x": 580,
+    "y": 260,
+    "wires": [
+      [
+        "c0ffee00000000f2"
+      ]
+    ]
+  },
+  {
+    "id": "c0ffee00000000f2",
+    "type": "debug",
+    "z": "51485792b6dd2f3b",
+    "name": "MySQL error",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "error.message",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 780,
+    "y": 260,
+    "wires": []
+  }
+]

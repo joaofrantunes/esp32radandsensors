@@ -1,0 +1,15 @@
+credentials.h
+!credentials.example.h
+flows_cred.json
+*_cred.json
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+node_modules/
+.pio/
+build/
+*.bin
+*.elf
+*.map

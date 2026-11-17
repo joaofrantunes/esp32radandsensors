@@ -1,0 +1,142 @@
+-- Fresh-install schema compatible with the Node-RED flow.
+-- Back up an existing database and inspect existing definitions before reuse.
+-- All time values represent UTC; the reception timestamp is not the sample time.
+CREATE DATABASE IF NOT EXISTS nodered CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE nodered;
+
+CREATE TABLE IF NOT EXISTS `ESP32TEMPERATURE` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `time` DATETIME(3) NOT NULL,
+    `temperature` DOUBLE NOT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `idx_time` (`time`)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `ESP32PRESSURE` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `time` DATETIME(3) NOT NULL,
+    `pressure` DOUBLE NOT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `idx_time` (`time`)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `ESP32RADIATION` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `time` DATETIME(3) NOT NULL,
+    `radiation` DOUBLE NOT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `idx_time` (`time`)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `ESP32APPROXALTITUDE` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `time` DATETIME(3) NOT NULL,
+    `approxaltitude` DOUBLE NOT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `idx_time` (`time`)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `ESP32VOLTAGE` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `time` DATETIME(3) NOT NULL,
+    `voltage` DOUBLE NOT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `idx_time` (`time`)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `ESP32HUMIDITY` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `time` DATETIME(3) NOT NULL,
+    `humidity` DOUBLE NOT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `idx_time` (`time`)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `ESP32TEMPHUM` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `time` DATETIME(3) NOT NULL,
+    `temphum` DOUBLE NOT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `idx_time` (`time`)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `ESP32LAT_DD` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `time` DATETIME(3) NOT NULL,
+    `lat_dd` DOUBLE NOT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `idx_time` (`time`)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `ESP32LON_DD` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `time` DATETIME(3) NOT NULL,
+    `lon_dd` DOUBLE NOT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `idx_time` (`time`)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `ESP32TIMESTAMP` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `time` DATETIME(3) NOT NULL,
+    `timestamp` DATETIME(3) NOT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `idx_time` (`time`)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `ESP32MAGX` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `time` DATETIME(3) NOT NULL,
+    `magx` DOUBLE NOT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `idx_time` (`time`)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `ESP32MAGY` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `time` DATETIME(3) NOT NULL,
+    `magy` DOUBLE NOT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `idx_time` (`time`)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `ESP32MAGZ` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `time` DATETIME(3) NOT NULL,
+    `magz` DOUBLE NOT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `idx_time` (`time`)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `ESP32MAGANGLE` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `time` DATETIME(3) NOT NULL,
+    `magxangle` DOUBLE NOT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `idx_time` (`time`)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `ESP32HALL` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `time` DATETIME(3) NOT NULL,
+    `hall` DOUBLE NOT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `idx_time` (`time`)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `ESP32INTTEMP` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `time` DATETIME(3) NOT NULL,
+    `intTemp` DOUBLE NOT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `idx_time` (`time`)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `ESP32CPM` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `time` DATETIME(3) NOT NULL,
+    `cpm` DOUBLE NOT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `idx_time` (`time`)
+) ENGINE=InnoDB;
+
