@@ -41,10 +41,15 @@ O fluxo não recarrega automaticamente o histórico MySQL no dashboard.
 | [docs/architecture.md](docs/architecture.md) | Ligações, tópicos, tabelas e frequência |
 | [docs/arduino-ide.md](docs/arduino-ide.md) | Exemplo de configuração Arduino IDE, bibliotecas e perfis de sensores |
 | [docs/geiger-v16.md](docs/geiger-v16.md) | Estatísticas Geiger, CAJOE/J305, novos flows e migração da V1.5.0 |
+| [pi_setup/](pi_setup/) | Instalador/atualizador Python para Raspberry Pi com backup e migração seletiva |
+| [docs/raspberry-pi-setup.md](docs/raspberry-pi-setup.md) | Instruções de atualização automática do backend |
 | [tests/validate-flow.js](tests/validate-flow.js) | Testes locais do fluxo e do contrato SQL |
 | [tests/firmware/](tests/firmware/) | Testes do firmware com interfaces simuladas (sem ESP32) |
 
 ## Instalação
+
+Para uma instalação Raspberry Pi existente, consultar o [instalador Python](docs/raspberry-pi-setup.md).
+Começar pelo modo `plan`, que não altera ficheiros, base de dados nem serviços.
 
 ### 1. ESP32
 

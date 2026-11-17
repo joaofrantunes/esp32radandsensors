@@ -93,6 +93,22 @@ válida). Para magnetómetro, usar `ENABLE_MAG 1` somente se instalado; o driver
 não suporta QMC5883L. Ver status MAG; calibração e nivelamento continuam
 necessários para orientação. Nunca simular coordenadas ou campos reais.
 
+### GPS confirmado: u-blox NEO-6M-0-001
+
+Identificação confirmada pela marcação da fotografia do módulo, 17/11/2026.
+O [datasheet NEO-6 da u-blox](https://content.u-blox.com/sites/default/files/products/documents/NEO-6_DataSheet_%28GPS.G6-HW-09005%29.pdf)
+indica UART predefinida 9600 baud, 8N1, com mensagens NMEA GGA e RMC, entre
+outras. Esta configuração já corresponde ao firmware V1.6 e TinyGPSPlus.
+O módulo NEO-6M em si usa alimentação 2,7–3,6 V; não inferir a tensão de entrada
+da placa adaptadora só pela marcação do chip. Confirmar o regulador e os pinos
+da placa antes de ligar alimentação. Os sinais UART devem ser compatíveis
+com a lógica de 3,3 V do ESP32.
+
+Se o GPS estiver sem leitura, confirmar `ENABLE_GPS 1`, `GPS_BAUD 9600`,
+TX do GPS para GPIO16, GND comum e antena ligada; levar para o exterior com
+visão do céu e aguardar fix. Se não houver bytes UART recentes, investigar
+alimentação/ligação/baud; com `no_fix`, investigar antena e visibilidade.
+
 ## Atualizar uma instalação existente
 
 1. Guardar a cópia atual do sketch e o `credentials.h` local. Exportar o fluxo
