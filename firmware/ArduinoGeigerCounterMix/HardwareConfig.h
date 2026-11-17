@@ -43,6 +43,20 @@
 #define ENABLE_INTTEMP 0
 #endif
 
+// J305 beta/gamma: uncalibrated example from the other CAJOE station.
+// Opt in only for indicative estimates; never use for radiation safety.
+#ifndef ENABLE_DOSE_ESTIMATE
+#define ENABLE_DOSE_ESTIMATE 0
+#endif
+#ifndef GEIGER_USVH_PER_CPM
+#define GEIGER_USVH_PER_CPM 0.00332
+#endif
+#if ENABLE_DOSE_ESTIMATE != 0 && ENABLE_DOSE_ESTIMATE != 1
+#error "ENABLE_DOSE_ESTIMATE must be 0 or 1"
+#endif
+static_assert(!ENABLE_DOSE_ESTIMATE || (ENABLE_GEIGER && GEIGER_USVH_PER_CPM >= 0.000000001 && GEIGER_USVH_PER_CPM <= 1.0),
+              "Dose estimate requires Geiger and factor 1e-9 through 1");
+
 // Optional cloud services; activate only with valid credentials.
 #ifndef ENABLE_IFTTT
 #define ENABLE_IFTTT 0

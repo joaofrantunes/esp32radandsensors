@@ -47,7 +47,7 @@ inline uint32_t analogReadMilliVolts(int){return fakeMilliVolts;}
 inline void configTime(long,int,const char*){}
 inline int hallRead(){return 0;}
 inline float temperatureRead(){return 42;}
-struct ESPType{uint64_t getEfuseMac(){return 42;}};
+struct ESPType{uint64_t getEfuseMac(){return 42;} uint32_t getFreeHeap(){return 100000;}};
 inline ESPType ESP;
 struct String{String(double,int){}};
 constexpr int WHITE=1, TEXT_ALIGN_CENTER=0, ArialMT_Plain_24=0;
@@ -70,7 +70,7 @@ inline int esp_task_wdt_reset(){return ESP_OK;}
 #define WIFI_STA 1
 #define WL_CONNECTED 3
 struct WiFiClient{void stop(){}};
-struct WiFiType{void mode(int){} void setAutoReconnect(bool){} void begin(const char*,const char*){} int status(){return WL_CONNECTED;} bool reconnect(){return true;}};
+struct WiFiType{void mode(int){} void setAutoReconnect(bool){} void begin(const char*,const char*){} int status(){return WL_CONNECTED;} bool reconnect(){return true;} long RSSI(){return -60;}};
 inline WiFiType WiFi;
 struct PubSubClient{
   PubSubClient(WiFiClient&){}
@@ -87,6 +87,7 @@ struct PubSubClient{
   void setCallback(void(*)(char*,byte*,unsigned int)){}
   void setKeepAlive(int){}
   void setSocketTimeout(int){}
+  bool setBufferSize(uint16_t){return true;}
 };
 struct TwoWire {
   unsigned starts=0; bool present=true; bool busy=false; int address=0; uint8_t reg=0;

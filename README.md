@@ -31,15 +31,16 @@ O fluxo não recarrega automaticamente o histórico MySQL no dashboard.
 
 | Caminho | Finalidade |
 |---|---|
-| [firmware/ArduinoGeigerCounterMix/](firmware/ArduinoGeigerCounterMix/) | Firmware ESP32 V1.5.0 (recuperação da versão esp32_v6) |
+| [firmware/ArduinoGeigerCounterMix/](firmware/ArduinoGeigerCounterMix/) | Firmware ESP32 V1.6.0 (estatísticas Geiger e sensores adicionais) |
 | [HardwareConfig.h](firmware/ArduinoGeigerCounterMix/HardwareConfig.h) | Seleção dos módulos instalados, ecrã e GPIOs |
 | [credentials.example.h](firmware/ArduinoGeigerCounterMix/credentials.example.h) | Modelo de configuração, sem credenciais reais |
 | [ExtraSensors.h](firmware/ArduinoGeigerCounterMix/ExtraSensors.h) | Aquisição e publicação dos módulos adicionais |
-| [node-red/flows.json](node-red/flows.json) | 17 entradas de medições, 16 gráficos, 14 indicadores de estado e persistência |
-| [database/schema.sql](database/schema.sql) | Criação da base de dados e das 17 tabelas |
+| [node-red/flows.json](node-red/flows.json) | 4 separadores, 32 gráficos, 18 textos e 38 tópicos MQTT |
+| [database/schema.sql](database/schema.sql) | Criação da base de dados e das 20 tabelas |
 | [database/queries.sql](database/queries.sql) | Exemplos de consultas históricas |
 | [docs/architecture.md](docs/architecture.md) | Ligações, tópicos, tabelas e frequência |
 | [docs/arduino-ide.md](docs/arduino-ide.md) | Exemplo de configuração Arduino IDE, bibliotecas e perfis de sensores |
+| [docs/geiger-v16.md](docs/geiger-v16.md) | Estatísticas Geiger, CAJOE/J305, novos flows e migração da V1.5.0 |
 | [tests/validate-flow.js](tests/validate-flow.js) | Testes locais do fluxo e do contrato SQL |
 | [tests/firmware/](tests/firmware/) | Testes do firmware com interfaces simuladas (sem ESP32) |
 
@@ -61,7 +62,7 @@ os módulos físicos da estação.
    a palavra-passe, endereço e porta do broker MQTT. Ativar serviços externos
    apenas se forem configurados no HardwareConfig.h.
 4. Confirmar o modelo de placa, as ligações e a tensão dos sinais antes de
-   compilar e carregar. A V1.5.0 segue a versão esp32_v6: GPIO13 para
+   compilar e carregar. A V1.6.0 preserva as ligações da versão esp32_v6: GPIO13 para
    Geiger, GPIO21/22 para I²C, GPIO16/17 para GPS, GPIO34 para ADC.
    O LED está desativado porque GPIO22 é agora SCL.
 5. Abrir o monitor série a 115200 baud.
@@ -87,6 +88,7 @@ e recompilar/carregar o firmware. Cada opção aceita 1 (ativado) ou 0 (desativa
 | ENABLE_INTTEMP | 0 | Sem diagnóstico da temperatura interna |
 | ENABLE_IFTTT | 0 | Sem alertas HTTP |
 | ENABLE_THINGSPEAK | 0 | Sem publicação ThingSpeak |
+| ENABLE_DOSE_ESTIMATE | 0 | Sem estimativa indicativa de dose (J305; não calibrada) |
 
 O I²C só é inicializado quando BMP280, AHT, magnetómetro ou OLED está ativado. O Geiger
 desativado também desativa os dependentes IFTTT/ThingSpeak.
@@ -168,11 +170,17 @@ O módulo `node-red-dashboard` está descontinuado; foi mantido para preservar
 a compatibilidade com os gráficos do fluxo original. Uma migração futura
 pode usar FlowFuse Dashboard, mas exige converter os nós de interface.
 
+Para atualizar uma instalação V1.5.0, seguir a sequência e o backup em
+[docs/geiger-v16.md](docs/geiger-v16.md). O novo fluxo preserva os tópicos e
+tabelas anteriores e adiciona dados agrupados de radiação, diagnósticos e
+sensores. Não importar uma segunda cópia do fluxo completo em paralelo.
+
 ### 5. Verificar ponta a ponta
 
 - No monitor série, confirmar mensagens CPM e BMP280, sem erros de MQTT.
 - Confirmar no Node-RED que os nós MQTT estão ligados e os gráficos recebem
-  valores. Esperar 15 s para CPM, 60 s para BMP280 e uma hora para CPH.
+  valores. Esperar 15 s para CPM e CPH estimado, 1 min para CPM móvel,
+  5 min para CPM estabilizado e 1 h para CPH medido e móvel.
 - Confirmar que as tabelas recebem novas linhas (ver queries.sql).
 - Para verificar apenas a configuração Node-RED, publicar uma amostra
   identificada como teste num broker de desenvolvimento, por exemplo:
@@ -207,7 +215,7 @@ node tests/validate-flow.js
 python3 tests/firmware/run-host-tests.py
 ```
 
-Valida ligações e identificadores, as 17 funções SQL, payloads válidos e
+Valida ligações e identificadores, as 17 funções SQL originais e as 7 novas entradas, payloads válidos e
 inválidos e correspondência de tabelas e colunas. O teste host C++17
 verifica combinações de flags, contadores, formato UTC, conversão AHT,
 GPS, validação ADC, magnetómetro, Hall e conflitos de GPIO, usando

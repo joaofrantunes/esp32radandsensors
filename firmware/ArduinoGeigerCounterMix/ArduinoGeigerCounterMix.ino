@@ -2,7 +2,7 @@
   Geiger counter RadiationD-v1.1 (CAJOE) + BMP280 + ESP32
   Original author: Hans Carlos Hofmann; based on Andreas Spiess
   and Mark A. Heckler (@MkHeck). MIT License.
-  Revised V1.5.0: restored optional v6 sensors, safe acquisition and MQTT status.
+  Revised V1.6.0: rolling Geiger statistics and additional telemetry.
 
   Keep the original credentials.h beside this sketch (never publish it).
   Default MQTT prefix matches node-red/flows.json. Change MQTT_TOPIC_PREFIX
@@ -11,6 +11,7 @@
 #include <Arduino.h>
 #include "credentials.h"
 #include "HardwareConfig.h"
+#include "GeigerStats.h"
 #include <WiFi.h>
 #include <PubSubClient.h>
 #if USE_I2C
@@ -48,7 +49,7 @@
 #endif
 #include "ExtraSensors.h"
 
-constexpr char VERSION[] = "V1.5.0";
+constexpr char VERSION[] = "V1.6.0";
 constexpr int INPUT_PIN = GEIGER_INPUT_PIN;
 constexpr int LED_PIN = STATUS_LED_PIN;
 constexpr int I2C_SDA = SENSOR_I2C_SDA;
@@ -59,7 +60,7 @@ constexpr uint8_t LED_OFF = HIGH;
 const char *const brokerHost = MQTT_SERVER;
 const uint16_t brokerPort = MQTT_PORT;
 constexpr float SEA_LEVEL_HPA = 1013.25f;
-constexpr uint32_t CPM_INTERVAL_MS = 15000UL;
+constexpr uint32_t CPM_INTERVAL_MS = GeigerStats::INTERVAL_MS;
 constexpr uint32_t CPH_INTERVAL_MS = 3600000UL;
 constexpr uint32_t BMP_INTERVAL_MS = 60000UL;
 constexpr uint32_t BMP_RETRY_MS = 30000UL;
@@ -73,6 +74,8 @@ constexpr UBaseType_t ALERT_QUEUE_DEPTH = 8;
 
 constexpr char TOPIC_RAD[] = MQTT_TOPIC_PREFIX "/radiation";
 constexpr char TOPIC_CPM[] = MQTT_TOPIC_PREFIX "/cpm";
+constexpr char TOPIC_STATS[] = MQTT_TOPIC_PREFIX "/geiger/stats";
+constexpr char TOPIC_DEVICE[] = MQTT_TOPIC_PREFIX "/device/stats";
 constexpr char TOPIC_TEMP[] = MQTT_TOPIC_PREFIX "/temperature";
 constexpr char TOPIC_PRESS[] = MQTT_TOPIC_PREFIX "/pressure";
 constexpr char TOPIC_ALT[] = MQTT_TOPIC_PREFIX "/approxaltitude";
@@ -114,7 +117,11 @@ struct RadiationSample {
 struct CpmSample {
   double rate;
   bool alarm;
+  GeigerStats::Reading stats;
 };
+#if ENABLE_GEIGER
+GeigerStats::Accumulator geigerStats;
+#endif
 
 struct EnvironmentSample {
   float temperature;
@@ -240,6 +247,8 @@ void mqttTask(void *parameter) {
   mqttClient.setCallback(mqttCallback);
   mqttClient.setKeepAlive(20);
   mqttClient.setSocketTimeout(3);
+  const bool statsBufferReady = mqttClient.setBufferSize(768);
+  if (!statsBufferReady) Serial.println("[MQTT] Advanced statistics buffer unavailable");
 
   CpmSample cpm = {};
   EnvironmentSample env = {};
@@ -250,9 +259,14 @@ void mqttTask(void *parameter) {
   bool lcdAvailable = false;
   ExtraSensors::Publisher extra;
   bool ntpStarted = false;
+  uint32_t lastDevice = millis() - 60000UL;
+  uint32_t previousLoop = millis();
+  uint64_t uptimeMs = previousLoop;
 
   for (;;) {
     const uint32_t now = millis();
+    uptimeMs += uint32_t(now - previousLoop);
+    previousLoop = now;
     extra.receive();
     if (cpmQueue && xQueueReceive(cpmQueue, &cpm, 0) == pdTRUE) {
       cpmPending = haveCpm = true;
@@ -303,7 +317,23 @@ void mqttTask(void *parameter) {
         if (ok && cpmPending) {
           ok = publishNumber(TOPIC_CPM, cpm.rate) &&
                mqttClient.publish(TOPIC_ALARM, cpm.alarm ? "on" : "off", true);
+          // Do not re-publish an old advanced snapshot as a new live reading.
+          if (ok && statsBufferReady && millis() - cpm.stats.sampledAt <= 30000UL) {
+            char payload[640];
+            if (GeigerStats::encode(cpm.stats, payload, sizeof payload,
+                                    ENABLE_DOSE_ESTIMATE ? GEIGER_USVH_PER_CPM : 0.0))
+              ok = mqttClient.publish(TOPIC_STATS, payload);
+          }
           if (ok) cpmPending = false;
+        }
+        if (ok && due(now, lastDevice, 60000UL)) {
+          char payload[160];
+          const int n = snprintf(payload, sizeof payload,
+              "{\"rssi_dbm\":%ld,\"heap_bytes\":%lu,\"uptime_s\":%llu}",
+              static_cast<long>(WiFi.RSSI()), static_cast<unsigned long>(ESP.getFreeHeap()),
+              static_cast<unsigned long long>(uptimeMs / 1000));
+          if (n > 0 && size_t(n) < sizeof payload) ok = mqttClient.publish(TOPIC_DEVICE, payload);
+          if (ok) lastDevice = now;
         }
         if (ok && envPending) {
           ok = mqttClient.publish(TOPIC_BMP_STATUS,
@@ -455,7 +485,7 @@ void sampleRadiation(uint32_t now) {
     } else if (alarmActive && cpm < ALARM_LOW_CPM) {
       alarmActive = false;
     }
-    const CpmSample sample = {cpm, alarmActive};
+    const CpmSample sample = {cpm, alarmActive, geigerStats.record(now, delta, elapsed)};
     if (cpmQueue) xQueueOverwrite(cpmQueue, &sample);
     Serial.printf("[CPM] pulses=%lu elapsed=%lu ms CPM=%.2f\n",
                   static_cast<unsigned long>(delta),

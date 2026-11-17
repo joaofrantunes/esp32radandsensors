@@ -210,7 +210,7 @@
     "legend": "false",
     "xformat": "HH:mm:ss",
     "interpolate": "linear",
-    "nodata": "",
+    "nodata": "Primeira amostra após 60 min; ver CPH estimado em Radiation — extended",
     "dot": true,
     "ymin": "",
     "ymax": "",
@@ -802,7 +802,7 @@
     "legend": "false",
     "xformat": "HH:mm:ss",
     "interpolate": "linear",
-    "nodata": "",
+    "nodata": "A aguardar fix GPS válido (ver GPS status)",
     "dot": false,
     "ymin": "",
     "ymax": "",
@@ -902,7 +902,7 @@
     "legend": "false",
     "xformat": "HH:mm:ss",
     "interpolate": "linear",
-    "nodata": "",
+    "nodata": "A aguardar fix GPS válido (ver GPS status)",
     "dot": false,
     "ymin": "",
     "ymax": "",
@@ -1076,7 +1076,7 @@
     "legend": "false",
     "xformat": "HH:mm:ss",
     "interpolate": "linear",
-    "nodata": "",
+    "nodata": "A aguardar HMC5883L ativo e leitura válida (ver MAG status)",
     "dot": false,
     "ymin": "",
     "ymax": "",
@@ -1176,7 +1176,7 @@
     "legend": "false",
     "xformat": "HH:mm:ss",
     "interpolate": "linear",
-    "nodata": "",
+    "nodata": "A aguardar HMC5883L ativo e leitura válida (ver MAG status)",
     "dot": false,
     "ymin": "",
     "ymax": "",
@@ -1276,7 +1276,7 @@
     "legend": "false",
     "xformat": "HH:mm:ss",
     "interpolate": "linear",
-    "nodata": "",
+    "nodata": "A aguardar HMC5883L ativo e leitura válida (ver MAG status)",
     "dot": false,
     "ymin": "",
     "ymax": "",
@@ -1376,7 +1376,7 @@
     "legend": "false",
     "xformat": "HH:mm:ss",
     "interpolate": "linear",
-    "nodata": "",
+    "nodata": "A aguardar HMC5883L ativo e leitura válida (ver MAG status)",
     "dot": false,
     "ymin": "",
     "ymax": "",
@@ -2344,5 +2344,1270 @@
     "x": 1010,
     "y": 2960,
     "wires": []
+  },
+  {
+    "id": "a160e6a9f538106a",
+    "type": "tab",
+    "label": "Radiation — extended",
+    "disabled": false,
+    "info": "V1.6 — additional MQTT observations",
+    "env": []
+  },
+  {
+    "id": "a160b01e70b178df",
+    "type": "ui_tab",
+    "name": "Radiation — extended",
+    "icon": "show_chart",
+    "order": 3,
+    "disabled": false,
+    "hidden": false
+  },
+  {
+    "id": "a160efeb0fe9a630",
+    "type": "ui_group",
+    "name": "Radiation — extended",
+    "tab": "a160b01e70b178df",
+    "order": 1,
+    "disp": true,
+    "width": "12",
+    "collapse": false
+  },
+  {
+    "id": "a160892474554c7f",
+    "type": "debug",
+    "z": "a160e6a9f538106a",
+    "name": "MySQL result",
+    "active": false,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "false",
+    "x": 800,
+    "y": 140,
+    "wires": []
+  },
+  {
+    "id": "a160641ecb177234",
+    "type": "Stackhero-MySQL",
+    "z": "a160e6a9f538106a",
+    "server": "a58548326a9bbdd9",
+    "name": "Persist validated observations",
+    "x": 600,
+    "y": 100,
+    "wires": [
+      [
+        "a160892474554c7f"
+      ]
+    ]
+  },
+  {
+    "id": "a160ce73ae03479e",
+    "type": "ui_chart",
+    "z": "a160e6a9f538106a",
+    "name": "",
+    "group": "a160efeb0fe9a630",
+    "order": 1,
+    "width": 6,
+    "height": 4,
+    "label": "CPM (15 s)",
+    "chartType": "line",
+    "legend": "false",
+    "xformat": "HH:mm:ss",
+    "interpolate": "linear",
+    "nodata": "A aguardar leitura válida",
+    "dot": false,
+    "ymin": "",
+    "ymax": "",
+    "removeOlder": 24,
+    "removeOlderPoints": "",
+    "removeOlderUnit": "3600",
+    "cutout": 0,
+    "useOneColor": false,
+    "useUTC": false,
+    "colors": [
+      "#1f77b4",
+      "#aec7e8",
+      "#ff7f0e",
+      "#2ca02c",
+      "#98df8a",
+      "#d62728",
+      "#ff9896",
+      "#9467bd",
+      "#c5b0d5"
+    ],
+    "outputs": 1,
+    "x": 800,
+    "y": 150,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "a1607ff470914368",
+    "type": "ui_chart",
+    "z": "a160e6a9f538106a",
+    "name": "",
+    "group": "a160efeb0fe9a630",
+    "order": 2,
+    "width": 6,
+    "height": 4,
+    "label": "CPM (rolling 1 min)",
+    "chartType": "line",
+    "legend": "false",
+    "xformat": "HH:mm:ss",
+    "interpolate": "linear",
+    "nodata": "A aguardar leitura válida",
+    "dot": false,
+    "ymin": "",
+    "ymax": "",
+    "removeOlder": 24,
+    "removeOlderPoints": "",
+    "removeOlderUnit": "3600",
+    "cutout": 0,
+    "useOneColor": false,
+    "useUTC": false,
+    "colors": [
+      "#1f77b4",
+      "#aec7e8",
+      "#ff7f0e",
+      "#2ca02c",
+      "#98df8a",
+      "#d62728",
+      "#ff9896",
+      "#9467bd",
+      "#c5b0d5"
+    ],
+    "outputs": 1,
+    "x": 800,
+    "y": 200,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "a160fa292c95fac8",
+    "type": "ui_chart",
+    "z": "a160e6a9f538106a",
+    "name": "",
+    "group": "a160efeb0fe9a630",
+    "order": 3,
+    "width": 6,
+    "height": 4,
+    "label": "CPM (rolling 5 min)",
+    "chartType": "line",
+    "legend": "false",
+    "xformat": "HH:mm:ss",
+    "interpolate": "linear",
+    "nodata": "A aguardar leitura válida",
+    "dot": false,
+    "ymin": "",
+    "ymax": "",
+    "removeOlder": 24,
+    "removeOlderPoints": "",
+    "removeOlderUnit": "3600",
+    "cutout": 0,
+    "useOneColor": false,
+    "useUTC": false,
+    "colors": [
+      "#1f77b4",
+      "#aec7e8",
+      "#ff7f0e",
+      "#2ca02c",
+      "#98df8a",
+      "#d62728",
+      "#ff9896",
+      "#9467bd",
+      "#c5b0d5"
+    ],
+    "outputs": 1,
+    "x": 800,
+    "y": 250,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "a16075fbabd63b12",
+    "type": "ui_chart",
+    "z": "a160e6a9f538106a",
+    "name": "",
+    "group": "a160efeb0fe9a630",
+    "order": 4,
+    "width": 6,
+    "height": 4,
+    "label": "CPH estimate (not measured)",
+    "chartType": "line",
+    "legend": "false",
+    "xformat": "HH:mm:ss",
+    "interpolate": "linear",
+    "nodata": "A aguardar leitura válida",
+    "dot": false,
+    "ymin": "",
+    "ymax": "",
+    "removeOlder": 24,
+    "removeOlderPoints": "",
+    "removeOlderUnit": "3600",
+    "cutout": 0,
+    "useOneColor": false,
+    "useUTC": false,
+    "colors": [
+      "#1f77b4",
+      "#aec7e8",
+      "#ff7f0e",
+      "#2ca02c",
+      "#98df8a",
+      "#d62728",
+      "#ff9896",
+      "#9467bd",
+      "#c5b0d5"
+    ],
+    "outputs": 1,
+    "x": 800,
+    "y": 300,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "a1603c550148d4de",
+    "type": "ui_chart",
+    "z": "a160e6a9f538106a",
+    "name": "",
+    "group": "a160efeb0fe9a630",
+    "order": 5,
+    "width": 6,
+    "height": 4,
+    "label": "CPH rolling (60 min, normalized)",
+    "chartType": "line",
+    "legend": "false",
+    "xformat": "HH:mm:ss",
+    "interpolate": "linear",
+    "nodata": "A aguardar leitura válida",
+    "dot": false,
+    "ymin": "",
+    "ymax": "",
+    "removeOlder": 24,
+    "removeOlderPoints": "",
+    "removeOlderUnit": "3600",
+    "cutout": 0,
+    "useOneColor": false,
+    "useUTC": false,
+    "colors": [
+      "#1f77b4",
+      "#aec7e8",
+      "#ff7f0e",
+      "#2ca02c",
+      "#98df8a",
+      "#d62728",
+      "#ff9896",
+      "#9467bd",
+      "#c5b0d5"
+    ],
+    "outputs": 1,
+    "x": 800,
+    "y": 350,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "a160f393d4af95d8",
+    "type": "ui_text",
+    "z": "a160e6a9f538106a",
+    "group": "a160efeb0fe9a630",
+    "order": 6,
+    "width": 6,
+    "height": 1,
+    "name": "Total pulses since boot",
+    "label": "Total pulses since boot",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "className": "",
+    "x": 800,
+    "y": 400,
+    "wires": []
+  },
+  {
+    "id": "a160cb3b562547d5",
+    "type": "ui_chart",
+    "z": "a160e6a9f538106a",
+    "name": "",
+    "group": "a160efeb0fe9a630",
+    "order": 7,
+    "width": 6,
+    "height": 4,
+    "label": "CPM statistical sigma (1 min)",
+    "chartType": "line",
+    "legend": "false",
+    "xformat": "HH:mm:ss",
+    "interpolate": "linear",
+    "nodata": "A aguardar leitura válida",
+    "dot": false,
+    "ymin": "",
+    "ymax": "",
+    "removeOlder": 24,
+    "removeOlderPoints": "",
+    "removeOlderUnit": "3600",
+    "cutout": 0,
+    "useOneColor": false,
+    "useUTC": false,
+    "colors": [
+      "#1f77b4",
+      "#aec7e8",
+      "#ff7f0e",
+      "#2ca02c",
+      "#98df8a",
+      "#d62728",
+      "#ff9896",
+      "#9467bd",
+      "#c5b0d5"
+    ],
+    "outputs": 1,
+    "x": 800,
+    "y": 450,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "a16020f02096c166",
+    "type": "ui_chart",
+    "z": "a160e6a9f538106a",
+    "name": "",
+    "group": "a160efeb0fe9a630",
+    "order": 8,
+    "width": 6,
+    "height": 4,
+    "label": "Raw counts per interval",
+    "chartType": "line",
+    "legend": "false",
+    "xformat": "HH:mm:ss",
+    "interpolate": "linear",
+    "nodata": "A aguardar leitura válida",
+    "dot": false,
+    "ymin": "",
+    "ymax": "",
+    "removeOlder": 24,
+    "removeOlderPoints": "",
+    "removeOlderUnit": "3600",
+    "cutout": 0,
+    "useOneColor": false,
+    "useUTC": false,
+    "colors": [
+      "#1f77b4",
+      "#aec7e8",
+      "#ff7f0e",
+      "#2ca02c",
+      "#98df8a",
+      "#d62728",
+      "#ff9896",
+      "#9467bd",
+      "#c5b0d5"
+    ],
+    "outputs": 1,
+    "x": 800,
+    "y": 500,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "a1603ebb21a5d360",
+    "type": "ui_text",
+    "z": "a160e6a9f538106a",
+    "group": "a160efeb0fe9a630",
+    "order": 9,
+    "width": 6,
+    "height": 1,
+    "name": "Interval duration (ms)",
+    "label": "Interval duration (ms)",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "className": "",
+    "x": 800,
+    "y": 550,
+    "wires": []
+  },
+  {
+    "id": "a16021a8332a2239",
+    "type": "ui_text",
+    "z": "a160e6a9f538106a",
+    "group": "a160efeb0fe9a630",
+    "order": 10,
+    "width": 6,
+    "height": 1,
+    "name": "CPH estimate integration (ms)",
+    "label": "CPH estimate integration (ms)",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "className": "",
+    "x": 800,
+    "y": 600,
+    "wires": []
+  },
+  {
+    "id": "a160621ebdbce347",
+    "type": "ui_chart",
+    "z": "a160e6a9f538106a",
+    "name": "",
+    "group": "a160efeb0fe9a630",
+    "order": 11,
+    "width": 6,
+    "height": 4,
+    "label": "Estimated µSv/h — UNCALIBRATED",
+    "chartType": "line",
+    "legend": "false",
+    "xformat": "HH:mm:ss",
+    "interpolate": "linear",
+    "nodata": "A aguardar leitura válida",
+    "dot": false,
+    "ymin": "",
+    "ymax": "",
+    "removeOlder": 24,
+    "removeOlderPoints": "",
+    "removeOlderUnit": "3600",
+    "cutout": 0,
+    "useOneColor": false,
+    "useUTC": false,
+    "colors": [
+      "#1f77b4",
+      "#aec7e8",
+      "#ff7f0e",
+      "#2ca02c",
+      "#98df8a",
+      "#d62728",
+      "#ff9896",
+      "#9467bd",
+      "#c5b0d5"
+    ],
+    "outputs": 1,
+    "x": 800,
+    "y": 650,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "a1607ef9e36f9f6d",
+    "type": "ui_text",
+    "z": "a160e6a9f538106a",
+    "group": "a160efeb0fe9a630",
+    "order": 12,
+    "width": 6,
+    "height": 1,
+    "name": "Estimated µSv since boot — UNCALIBRATED",
+    "label": "Estimated µSv since boot — UNCALIBRATED",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "className": "",
+    "x": 800,
+    "y": 700,
+    "wires": []
+  },
+  {
+    "id": "a1603ad76cd3bd28",
+    "type": "function",
+    "z": "a160e6a9f538106a",
+    "name": "Validate coherent count snapshot",
+    "func": "let p = msg.payload;\ntry { if (Buffer.isBuffer(p)) p = p.toString('utf8'); if (typeof p === 'string') p = JSON.parse(p); }\ncatch (_) { node.warn('Invalid JSON'); return null; }\nif (!p || typeof p !== 'object' || Array.isArray(p)) return null;\nconst nonneg = x => typeof x === 'number' && Number.isFinite(x) && x >= 0;\nconst whole = x => Number.isSafeInteger(x) && x >= 0;\nif (!whole(p.count) || p.count > 4294967295 || !whole(p.elapsed_ms) || p.elapsed_ms < 15000 || p.elapsed_ms > 4294967295 || !whole(p.total) || p.total < p.count) return null;\nif (!nonneg(p.cpm) || Math.abs(p.cpm - 60000*p.count/p.elapsed_ms) > 0.001 || !nonneg(p.cph_est)) return null;\nfor (const [value, duration, target] of [['cpm60','window60_ms',60000],['cpm300','window300_ms',300000],['cph_rolling','window3600_ms',3600000]]) {\n    if (!whole(p[duration])) return null;\n    if (p[value] === null ? p[duration] !== 0 : !nonneg(p[value]) || p[duration] < target || p[duration] > target+15000) return null;\n}\nif (p.estimate_ms !== (p.cpm60 === null ? p.elapsed_ms : p.window60_ms) || Math.abs(p.cph_est - 60*(p.cpm60 === null ? p.cpm : p.cpm60)) > 0.032) return null;\nfor(const k of ['sigma_cpm','dose_rate_est','dose_total_est']) if(p[k] !== null && !nonneg(p[k])) return null;\nif (p.cpm60 === null && (p.sigma_cpm !== null || p.dose_rate_est !== null)) return null;\nif (p.dose_ratio === null) { if (p.dose_rate_est !== null || p.dose_total_est !== null) return null; }\nelse if (!nonneg(p.dose_ratio) || p.dose_ratio <= 0 || !nonneg(p.dose_total_est) || (p.cpm60 !== null && !nonneg(p.dose_rate_est))) return null;\nconst time = new Date().toISOString().slice(0,23).replace('T',' ');\nconst data = {time}; for(const k of [\"count\",\"elapsed_ms\",\"total\",\"cpm\",\"cpm60\",\"cpm300\",\"cph_est\",\"estimate_ms\",\"cph_rolling\",\"window60_ms\",\"window300_ms\",\"window3600_ms\",\"sigma_cpm\",\"dose_rate_est\",\"dose_total_est\",\"dose_ratio\"]) data[k]=p[k];\nconst sql = {topic:\"INSERT INTO ESP32GEIGERSTATS (`time`, `count`, `elapsed_ms`, `total`, `cpm`, `cpm60`, `cpm300`, `cph_est`, `estimate_ms`, `cph_rolling`, `window60_ms`, `window300_ms`, `window3600_ms`, `sigma_cpm`, `dose_rate_est`, `dose_total_est`, `dose_ratio`) VALUES (:time, :count, :elapsed_ms, :total, :cpm, :cpm60, :cpm300, :cph_est, :estimate_ms, :cph_rolling, :window60_ms, :window300_ms, :window3600_ms, :sigma_cpm, :dose_rate_est, :dose_total_est, :dose_ratio)\",payload:data};\nreturn [sql, ...[\"cpm\",\"cpm60\",\"cpm300\",\"cph_est\",\"cph_rolling\",\"total\",\"sigma_cpm\",\"count\",\"elapsed_ms\",\"estimate_ms\",\"dose_rate_est\",\"dose_total_est\"].map(k=>p[k]===null ? null : ({topic:k,payload:p[k]}))];",
+    "outputs": 13,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 400,
+    "y": 400,
+    "wires": [
+      [
+        "a160641ecb177234"
+      ],
+      [
+        "a160ce73ae03479e"
+      ],
+      [
+        "a1607ff470914368"
+      ],
+      [
+        "a160fa292c95fac8"
+      ],
+      [
+        "a16075fbabd63b12"
+      ],
+      [
+        "a1603c550148d4de"
+      ],
+      [
+        "a160f393d4af95d8"
+      ],
+      [
+        "a160cb3b562547d5"
+      ],
+      [
+        "a16020f02096c166"
+      ],
+      [
+        "a1603ebb21a5d360"
+      ],
+      [
+        "a16021a8332a2239"
+      ],
+      [
+        "a160621ebdbce347"
+      ],
+      [
+        "a1607ef9e36f9f6d"
+      ]
+    ]
+  },
+  {
+    "id": "a16094a3540e0f3e",
+    "type": "mqtt in",
+    "z": "a160e6a9f538106a",
+    "name": "esp32/geiger/stats",
+    "topic": "esp32/geiger/stats",
+    "qos": "0",
+    "datatype": "auto-detect",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": false,
+    "inputs": 0,
+    "x": 160,
+    "y": 400,
+    "wires": [
+      [
+        "a1603ad76cd3bd28"
+      ]
+    ]
+  },
+  {
+    "id": "a1605b35495fe8bd",
+    "type": "tab",
+    "label": "ESP32 diagnostics",
+    "disabled": false,
+    "info": "V1.6 — additional MQTT observations",
+    "env": []
+  },
+  {
+    "id": "a16091302558a751",
+    "type": "ui_tab",
+    "name": "ESP32 diagnostics",
+    "icon": "show_chart",
+    "order": 4,
+    "disabled": false,
+    "hidden": false
+  },
+  {
+    "id": "a160744213c2a9d6",
+    "type": "ui_group",
+    "name": "ESP32 diagnostics",
+    "tab": "a16091302558a751",
+    "order": 1,
+    "disp": true,
+    "width": "12",
+    "collapse": false
+  },
+  {
+    "id": "a160f31bbfa297eb",
+    "type": "debug",
+    "z": "a1605b35495fe8bd",
+    "name": "MySQL result",
+    "active": false,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "false",
+    "x": 800,
+    "y": 140,
+    "wires": []
+  },
+  {
+    "id": "a160ff6aca8679e0",
+    "type": "Stackhero-MySQL",
+    "z": "a1605b35495fe8bd",
+    "server": "a58548326a9bbdd9",
+    "name": "Persist validated observations",
+    "x": 600,
+    "y": 100,
+    "wires": [
+      [
+        "a160f31bbfa297eb"
+      ]
+    ]
+  },
+  {
+    "id": "a16080d019275779",
+    "type": "ui_chart",
+    "z": "a1605b35495fe8bd",
+    "name": "",
+    "group": "a160744213c2a9d6",
+    "order": 1,
+    "width": 6,
+    "height": 4,
+    "label": "Wi-Fi RSSI (dBm)",
+    "chartType": "line",
+    "legend": "false",
+    "xformat": "HH:mm:ss",
+    "interpolate": "linear",
+    "nodata": "A aguardar leitura válida",
+    "dot": false,
+    "ymin": "",
+    "ymax": "",
+    "removeOlder": 24,
+    "removeOlderPoints": "",
+    "removeOlderUnit": "3600",
+    "cutout": 0,
+    "useOneColor": false,
+    "useUTC": false,
+    "colors": [
+      "#1f77b4",
+      "#aec7e8",
+      "#ff7f0e",
+      "#2ca02c",
+      "#98df8a",
+      "#d62728",
+      "#ff9896",
+      "#9467bd",
+      "#c5b0d5"
+    ],
+    "outputs": 1,
+    "x": 800,
+    "y": 160,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "a160f198402b86bd",
+    "type": "ui_chart",
+    "z": "a1605b35495fe8bd",
+    "name": "",
+    "group": "a160744213c2a9d6",
+    "order": 2,
+    "width": 6,
+    "height": 4,
+    "label": "Free heap (bytes)",
+    "chartType": "line",
+    "legend": "false",
+    "xformat": "HH:mm:ss",
+    "interpolate": "linear",
+    "nodata": "A aguardar leitura válida",
+    "dot": false,
+    "ymin": "",
+    "ymax": "",
+    "removeOlder": 24,
+    "removeOlderPoints": "",
+    "removeOlderUnit": "3600",
+    "cutout": 0,
+    "useOneColor": false,
+    "useUTC": false,
+    "colors": [
+      "#1f77b4",
+      "#aec7e8",
+      "#ff7f0e",
+      "#2ca02c",
+      "#98df8a",
+      "#d62728",
+      "#ff9896",
+      "#9467bd",
+      "#c5b0d5"
+    ],
+    "outputs": 1,
+    "x": 800,
+    "y": 220,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "a160eb3e8be25cff",
+    "type": "ui_chart",
+    "z": "a1605b35495fe8bd",
+    "name": "",
+    "group": "a160744213c2a9d6",
+    "order": 3,
+    "width": 6,
+    "height": 4,
+    "label": "Uptime (s)",
+    "chartType": "line",
+    "legend": "false",
+    "xformat": "HH:mm:ss",
+    "interpolate": "linear",
+    "nodata": "A aguardar leitura válida",
+    "dot": false,
+    "ymin": "",
+    "ymax": "",
+    "removeOlder": 24,
+    "removeOlderPoints": "",
+    "removeOlderUnit": "3600",
+    "cutout": 0,
+    "useOneColor": false,
+    "useUTC": false,
+    "colors": [
+      "#1f77b4",
+      "#aec7e8",
+      "#ff7f0e",
+      "#2ca02c",
+      "#98df8a",
+      "#d62728",
+      "#ff9896",
+      "#9467bd",
+      "#c5b0d5"
+    ],
+    "outputs": 1,
+    "x": 800,
+    "y": 280,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "a1601bfd0b411f68",
+    "type": "function",
+    "z": "a1605b35495fe8bd",
+    "name": "Validate device telemetry",
+    "func": "let p = msg.payload;\ntry { if (Buffer.isBuffer(p)) p = p.toString('utf8'); if (typeof p === 'string') p = JSON.parse(p); }\ncatch (_) { node.warn('Invalid JSON'); return null; }\nif (!p || typeof p !== 'object' || Array.isArray(p)) return null;\nif (!Number.isInteger(p.rssi_dbm) || p.rssi_dbm < -127 || p.rssi_dbm > 0 || !Number.isSafeInteger(p.heap_bytes) || p.heap_bytes < 0 || !Number.isSafeInteger(p.uptime_s) || p.uptime_s < 0) return null;\nconst time = new Date().toISOString().slice(0,23).replace('T',' ');\nreturn [{topic:'INSERT INTO ESP32DEVICE (`time`, rssi_dbm, heap_bytes, uptime_s) VALUES (:time, :rssi_dbm, :heap_bytes, :uptime_s)',payload:{time,rssi_dbm:p.rssi_dbm,heap_bytes:p.heap_bytes,uptime_s:p.uptime_s}}, ...['rssi_dbm','heap_bytes','uptime_s'].map(k=>({topic:k,payload:p[k]}))];",
+    "outputs": 4,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 400,
+    "y": 200,
+    "wires": [
+      [
+        "a160ff6aca8679e0"
+      ],
+      [
+        "a16080d019275779"
+      ],
+      [
+        "a160f198402b86bd"
+      ],
+      [
+        "a160eb3e8be25cff"
+      ]
+    ]
+  },
+  {
+    "id": "a1605792d2981981",
+    "type": "mqtt in",
+    "z": "a1605b35495fe8bd",
+    "name": "esp32/device/stats",
+    "topic": "esp32/device/stats",
+    "qos": "0",
+    "datatype": "auto-detect",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": false,
+    "inputs": 0,
+    "x": 160,
+    "y": 200,
+    "wires": [
+      [
+        "a1601bfd0b411f68"
+      ]
+    ]
+  },
+  {
+    "id": "a16090b085cb3f29",
+    "type": "tab",
+    "label": "Environmental and GPS extended",
+    "disabled": false,
+    "info": "V1.6 — additional MQTT observations",
+    "env": []
+  },
+  {
+    "id": "a160f450aa7e8587",
+    "type": "ui_tab",
+    "name": "Environmental and GPS extended",
+    "icon": "show_chart",
+    "order": 5,
+    "disabled": false,
+    "hidden": false
+  },
+  {
+    "id": "a160b0b259948fb3",
+    "type": "ui_group",
+    "name": "Environmental and GPS extended",
+    "tab": "a160f450aa7e8587",
+    "order": 1,
+    "disp": true,
+    "width": "12",
+    "collapse": false
+  },
+  {
+    "id": "a160478fd8335577",
+    "type": "ui_group",
+    "name": "GPS quality",
+    "tab": "a160f450aa7e8587",
+    "order": 2,
+    "disp": true,
+    "width": "12",
+    "collapse": false
+  },
+  {
+    "id": "a160c75a9b246dfe",
+    "type": "ui_group",
+    "name": "Magnetometer",
+    "tab": "a160f450aa7e8587",
+    "order": 3,
+    "disp": true,
+    "width": "12",
+    "collapse": false
+  },
+  {
+    "id": "a160e54580d7c14d",
+    "type": "debug",
+    "z": "a16090b085cb3f29",
+    "name": "MySQL result",
+    "active": false,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "false",
+    "x": 800,
+    "y": 140,
+    "wires": []
+  },
+  {
+    "id": "a160b07c182b05e1",
+    "type": "Stackhero-MySQL",
+    "z": "a16090b085cb3f29",
+    "server": "a58548326a9bbdd9",
+    "name": "Persist validated observations",
+    "x": 600,
+    "y": 100,
+    "wires": [
+      [
+        "a160e54580d7c14d"
+      ]
+    ]
+  },
+  {
+    "id": "a160d14e6b187ec4",
+    "type": "ui_chart",
+    "z": "a16090b085cb3f29",
+    "name": "",
+    "group": "a160b0b259948fb3",
+    "order": 1,
+    "width": 6,
+    "height": 4,
+    "label": "Dew point (°C)",
+    "chartType": "line",
+    "legend": "false",
+    "xformat": "HH:mm:ss",
+    "interpolate": "linear",
+    "nodata": "A aguardar leitura válida",
+    "dot": false,
+    "ymin": "",
+    "ymax": "",
+    "removeOlder": 24,
+    "removeOlderPoints": "",
+    "removeOlderUnit": "3600",
+    "cutout": 0,
+    "useOneColor": false,
+    "useUTC": false,
+    "colors": [
+      "#1f77b4",
+      "#aec7e8",
+      "#ff7f0e",
+      "#2ca02c",
+      "#98df8a",
+      "#d62728",
+      "#ff9896",
+      "#9467bd",
+      "#c5b0d5"
+    ],
+    "outputs": 1,
+    "x": 800,
+    "y": 180,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "a1602007b42ef062",
+    "type": "function",
+    "z": "a16090b085cb3f29",
+    "name": "Validate dewpoint",
+    "func": "let raw = Buffer.isBuffer(msg.payload) ? msg.payload.toString('utf8') : msg.payload;\nif (typeof raw !== 'number' && (typeof raw !== 'string' || !/^[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?$/.test(raw.trim()))) return null;\nconst value = Number(raw);\nif (!Number.isFinite(value) || value < -200 || value > 60 || (false && !Number.isInteger(value))) return null;\nconst time = new Date().toISOString().slice(0,23).replace('T',' ');\nreturn [{topic:'INSERT INTO ESP32EXTRA (`time`, metric, value) VALUES (:time, :metric, :value)',payload:{time,metric:\"dewpoint\",value}},{topic:\"dewpoint\",payload:value}];",
+    "outputs": 2,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 430,
+    "y": 180,
+    "wires": [
+      [
+        "a160b07c182b05e1"
+      ],
+      [
+        "a160d14e6b187ec4"
+      ]
+    ]
+  },
+  {
+    "id": "a160670e0a0d2b37",
+    "type": "mqtt in",
+    "z": "a16090b085cb3f29",
+    "name": "esp32/dewpoint",
+    "topic": "esp32/dewpoint",
+    "qos": "0",
+    "datatype": "auto-detect",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": false,
+    "inputs": 0,
+    "x": 160,
+    "y": 180,
+    "wires": [
+      [
+        "a1602007b42ef062"
+      ]
+    ]
+  },
+  {
+    "id": "a160b294ea351548",
+    "type": "ui_chart",
+    "z": "a16090b085cb3f29",
+    "name": "",
+    "group": "a160478fd8335577",
+    "order": 2,
+    "width": 6,
+    "height": 4,
+    "label": "GPS altitude (m)",
+    "chartType": "line",
+    "legend": "false",
+    "xformat": "HH:mm:ss",
+    "interpolate": "linear",
+    "nodata": "A aguardar leitura válida",
+    "dot": false,
+    "ymin": "",
+    "ymax": "",
+    "removeOlder": 24,
+    "removeOlderPoints": "",
+    "removeOlderUnit": "3600",
+    "cutout": 0,
+    "useOneColor": false,
+    "useUTC": false,
+    "colors": [
+      "#1f77b4",
+      "#aec7e8",
+      "#ff7f0e",
+      "#2ca02c",
+      "#98df8a",
+      "#d62728",
+      "#ff9896",
+      "#9467bd",
+      "#c5b0d5"
+    ],
+    "outputs": 1,
+    "x": 800,
+    "y": 250,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "a1603d2a02a5c0b5",
+    "type": "function",
+    "z": "a16090b085cb3f29",
+    "name": "Validate gps/altitude",
+    "func": "let raw = Buffer.isBuffer(msg.payload) ? msg.payload.toString('utf8') : msg.payload;\nif (typeof raw !== 'number' && (typeof raw !== 'string' || !/^[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?$/.test(raw.trim()))) return null;\nconst value = Number(raw);\nif (!Number.isFinite(value) || value < -12000 || value > 100000 || (false && !Number.isInteger(value))) return null;\nconst time = new Date().toISOString().slice(0,23).replace('T',' ');\nreturn [{topic:'INSERT INTO ESP32EXTRA (`time`, metric, value) VALUES (:time, :metric, :value)',payload:{time,metric:\"gps/altitude\",value}},{topic:\"gps/altitude\",payload:value}];",
+    "outputs": 2,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 430,
+    "y": 250,
+    "wires": [
+      [
+        "a160b07c182b05e1"
+      ],
+      [
+        "a160b294ea351548"
+      ]
+    ]
+  },
+  {
+    "id": "a160103bd57af75c",
+    "type": "mqtt in",
+    "z": "a16090b085cb3f29",
+    "name": "esp32/gps/altitude",
+    "topic": "esp32/gps/altitude",
+    "qos": "0",
+    "datatype": "auto-detect",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": false,
+    "inputs": 0,
+    "x": 160,
+    "y": 250,
+    "wires": [
+      [
+        "a1603d2a02a5c0b5"
+      ]
+    ]
+  },
+  {
+    "id": "a1601c1c1f179c03",
+    "type": "ui_chart",
+    "z": "a16090b085cb3f29",
+    "name": "",
+    "group": "a160478fd8335577",
+    "order": 3,
+    "width": 6,
+    "height": 4,
+    "label": "GPS HDOP (dimensionless)",
+    "chartType": "line",
+    "legend": "false",
+    "xformat": "HH:mm:ss",
+    "interpolate": "linear",
+    "nodata": "A aguardar leitura válida",
+    "dot": false,
+    "ymin": "",
+    "ymax": "",
+    "removeOlder": 24,
+    "removeOlderPoints": "",
+    "removeOlderUnit": "3600",
+    "cutout": 0,
+    "useOneColor": false,
+    "useUTC": false,
+    "colors": [
+      "#1f77b4",
+      "#aec7e8",
+      "#ff7f0e",
+      "#2ca02c",
+      "#98df8a",
+      "#d62728",
+      "#ff9896",
+      "#9467bd",
+      "#c5b0d5"
+    ],
+    "outputs": 1,
+    "x": 800,
+    "y": 320,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "a160cdfe2926b8f7",
+    "type": "function",
+    "z": "a16090b085cb3f29",
+    "name": "Validate gps/hdop",
+    "func": "let raw = Buffer.isBuffer(msg.payload) ? msg.payload.toString('utf8') : msg.payload;\nif (typeof raw !== 'number' && (typeof raw !== 'string' || !/^[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?$/.test(raw.trim()))) return null;\nconst value = Number(raw);\nif (!Number.isFinite(value) || value < 0 || value > 1000 || (false && !Number.isInteger(value))) return null;\nconst time = new Date().toISOString().slice(0,23).replace('T',' ');\nreturn [{topic:'INSERT INTO ESP32EXTRA (`time`, metric, value) VALUES (:time, :metric, :value)',payload:{time,metric:\"gps/hdop\",value}},{topic:\"gps/hdop\",payload:value}];",
+    "outputs": 2,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 430,
+    "y": 320,
+    "wires": [
+      [
+        "a160b07c182b05e1"
+      ],
+      [
+        "a1601c1c1f179c03"
+      ]
+    ]
+  },
+  {
+    "id": "a160bd0c5d755ee8",
+    "type": "mqtt in",
+    "z": "a16090b085cb3f29",
+    "name": "esp32/gps/hdop",
+    "topic": "esp32/gps/hdop",
+    "qos": "0",
+    "datatype": "auto-detect",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": false,
+    "inputs": 0,
+    "x": 160,
+    "y": 320,
+    "wires": [
+      [
+        "a160cdfe2926b8f7"
+      ]
+    ]
+  },
+  {
+    "id": "a160dae4660deda8",
+    "type": "ui_chart",
+    "z": "a16090b085cb3f29",
+    "name": "",
+    "group": "a160478fd8335577",
+    "order": 4,
+    "width": 6,
+    "height": 4,
+    "label": "GPS satellites",
+    "chartType": "line",
+    "legend": "false",
+    "xformat": "HH:mm:ss",
+    "interpolate": "linear",
+    "nodata": "A aguardar leitura válida",
+    "dot": false,
+    "ymin": "",
+    "ymax": "",
+    "removeOlder": 24,
+    "removeOlderPoints": "",
+    "removeOlderUnit": "3600",
+    "cutout": 0,
+    "useOneColor": false,
+    "useUTC": false,
+    "colors": [
+      "#1f77b4",
+      "#aec7e8",
+      "#ff7f0e",
+      "#2ca02c",
+      "#98df8a",
+      "#d62728",
+      "#ff9896",
+      "#9467bd",
+      "#c5b0d5"
+    ],
+    "outputs": 1,
+    "x": 800,
+    "y": 390,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "a1605aa5afd2d1f3",
+    "type": "function",
+    "z": "a16090b085cb3f29",
+    "name": "Validate gps/satellites",
+    "func": "let raw = Buffer.isBuffer(msg.payload) ? msg.payload.toString('utf8') : msg.payload;\nif (typeof raw !== 'number' && (typeof raw !== 'string' || !/^[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?$/.test(raw.trim()))) return null;\nconst value = Number(raw);\nif (!Number.isFinite(value) || value < 0 || value > 255 || (true && !Number.isInteger(value))) return null;\nconst time = new Date().toISOString().slice(0,23).replace('T',' ');\nreturn [{topic:'INSERT INTO ESP32EXTRA (`time`, metric, value) VALUES (:time, :metric, :value)',payload:{time,metric:\"gps/satellites\",value}},{topic:\"gps/satellites\",payload:value}];",
+    "outputs": 2,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 430,
+    "y": 390,
+    "wires": [
+      [
+        "a160b07c182b05e1"
+      ],
+      [
+        "a160dae4660deda8"
+      ]
+    ]
+  },
+  {
+    "id": "a16078416d16ab15",
+    "type": "mqtt in",
+    "z": "a16090b085cb3f29",
+    "name": "esp32/gps/satellites",
+    "topic": "esp32/gps/satellites",
+    "qos": "0",
+    "datatype": "auto-detect",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": false,
+    "inputs": 0,
+    "x": 160,
+    "y": 390,
+    "wires": [
+      [
+        "a1605aa5afd2d1f3"
+      ]
+    ]
+  },
+  {
+    "id": "a1604ae19a248784",
+    "type": "ui_chart",
+    "z": "a16090b085cb3f29",
+    "name": "",
+    "group": "a160c75a9b246dfe",
+    "order": 5,
+    "width": 6,
+    "height": 4,
+    "label": "Magnetic field magnitude (µT)",
+    "chartType": "line",
+    "legend": "false",
+    "xformat": "HH:mm:ss",
+    "interpolate": "linear",
+    "nodata": "A aguardar leitura válida",
+    "dot": false,
+    "ymin": "",
+    "ymax": "",
+    "removeOlder": 24,
+    "removeOlderPoints": "",
+    "removeOlderUnit": "3600",
+    "cutout": 0,
+    "useOneColor": false,
+    "useUTC": false,
+    "colors": [
+      "#1f77b4",
+      "#aec7e8",
+      "#ff7f0e",
+      "#2ca02c",
+      "#98df8a",
+      "#d62728",
+      "#ff9896",
+      "#9467bd",
+      "#c5b0d5"
+    ],
+    "outputs": 1,
+    "x": 800,
+    "y": 460,
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "a16092e2df438aac",
+    "type": "function",
+    "z": "a16090b085cb3f29",
+    "name": "Validate mag/magnitude",
+    "func": "let raw = Buffer.isBuffer(msg.payload) ? msg.payload.toString('utf8') : msg.payload;\nif (typeof raw !== 'number' && (typeof raw !== 'string' || !/^[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][+-]?\\d+)?$/.test(raw.trim()))) return null;\nconst value = Number(raw);\nif (!Number.isFinite(value) || value < 0 || value > 2000 || (false && !Number.isInteger(value))) return null;\nconst time = new Date().toISOString().slice(0,23).replace('T',' ');\nreturn [{topic:'INSERT INTO ESP32EXTRA (`time`, metric, value) VALUES (:time, :metric, :value)',payload:{time,metric:\"mag/magnitude\",value}},{topic:\"mag/magnitude\",payload:value}];",
+    "outputs": 2,
+    "timeout": "",
+    "noerr": 0,
+    "initialize": "",
+    "finalize": "",
+    "libs": [],
+    "x": 430,
+    "y": 460,
+    "wires": [
+      [
+        "a160b07c182b05e1"
+      ],
+      [
+        "a1604ae19a248784"
+      ]
+    ]
+  },
+  {
+    "id": "a1609a063abdf6fb",
+    "type": "mqtt in",
+    "z": "a16090b085cb3f29",
+    "name": "esp32/mag/magnitude",
+    "topic": "esp32/mag/magnitude",
+    "qos": "0",
+    "datatype": "auto-detect",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": false,
+    "inputs": 0,
+    "x": 160,
+    "y": 460,
+    "wires": [
+      [
+        "a16092e2df438aac"
+      ]
+    ]
   }
 ]

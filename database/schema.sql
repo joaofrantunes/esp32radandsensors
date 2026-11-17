@@ -140,3 +140,46 @@ CREATE TABLE IF NOT EXISTS `ESP32CPM` (
     INDEX `idx_time` (`time`)
 ) ENGINE=InnoDB;
 
+-- V1.6: grouped Geiger observations, preserving raw interval data and coverage.
+CREATE TABLE IF NOT EXISTS `ESP32GEIGERSTATS` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `time` DATETIME(3) NOT NULL,
+    `count` BIGINT UNSIGNED NOT NULL,
+    `elapsed_ms` BIGINT UNSIGNED NOT NULL,
+    `total` BIGINT UNSIGNED NOT NULL,
+    `cpm` DOUBLE NOT NULL,
+    `cpm60` DOUBLE NULL,
+    `cpm300` DOUBLE NULL,
+    `cph_est` DOUBLE NOT NULL,
+    `estimate_ms` BIGINT UNSIGNED NOT NULL,
+    `cph_rolling` DOUBLE NULL,
+    `window60_ms` BIGINT UNSIGNED NOT NULL,
+    `window300_ms` BIGINT UNSIGNED NOT NULL,
+    `window3600_ms` BIGINT UNSIGNED NOT NULL,
+    `sigma_cpm` DOUBLE NULL,
+    `dose_rate_est` DOUBLE NULL,
+    `dose_total_est` DOUBLE NULL,
+    `dose_ratio` DOUBLE NULL,
+    PRIMARY KEY (`id`),
+    INDEX `idx_time` (`time`)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `ESP32DEVICE` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `time` DATETIME(3) NOT NULL,
+    `rssi_dbm` INT NOT NULL,
+    `heap_bytes` BIGINT UNSIGNED NOT NULL,
+    `uptime_s` BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `idx_time` (`time`)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS `ESP32EXTRA` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `time` DATETIME(3) NOT NULL,
+    `metric` VARCHAR(32) NOT NULL,
+    `value` DOUBLE NOT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `idx_metric_time` (`metric`, `time`)
+) ENGINE=InnoDB;
+

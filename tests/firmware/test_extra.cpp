@@ -37,6 +37,11 @@ int main(){
   assert(emitted("esp32/lon_dd","-9.123456"));
   assert(emitted("esp32/magangle","0.00"));
   assert(emitted("esp32/humidity","50.00"));
+  assert(emitted("esp32/dewpoint","13.85"));
+  assert(emitted("esp32/gps/altitude","42.00"));
+  assert(emitted("esp32/gps/hdop","1.20"));
+  assert(emitted("esp32/gps/satellites","8"));
+  assert(emitted("esp32/mag/magnitude","100.00"));
   assert(emitted("esp32/voltage","3.720"));
   mqttClient.publications.clear();
   pub.statusRefresh=true;
@@ -54,5 +59,6 @@ int main(){
   assert(pub.sample.state[VOLTAGE]==SENSOR_STATE_UNAVAILABLE && pub.sample.state[GPS]==SENSOR_STATE_NO_FIX);
   assert(pub.publish(mqttClient,60100));
   assert(!emitted("esp32/humidity") && !emitted("esp32/lat_dd") && !emitted("esp32/voltage"));
+  assert(!emitted("esp32/dewpoint") && !emitted("esp32/gps/altitude") && !emitted("esp32/mag/magnitude"));
   puts("Extra sensor mock logic PASS");
 }

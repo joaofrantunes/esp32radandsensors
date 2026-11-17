@@ -40,6 +40,8 @@ struct Snapshot {
   State state[MODULE_COUNT];
   uint32_t sampledAt;
   double humidity, ahtTemp, voltage, latitude, longitude, x, y, z, heading, hall, intTemp;
+  double gpsAltitude, gpsHdop, gpsSatellites;
+  bool gpsAltitudeValid, gpsHdopValid, gpsSatellitesValid;
   bool headingValid;
   char timestamp[25];
 };
@@ -279,6 +281,12 @@ inline void tick(uint32_t now) {
     s.longitude = gps.location.lng();
     s.state[GPS] = isfinite(s.latitude) && isfinite(s.longitude) &&
         fabs(s.latitude) <= 90.0 && fabs(s.longitude) <= 180.0 ? SENSOR_STATE_OK : SENSOR_STATE_NO_FIX;
+    s.gpsAltitude = gps.altitude.meters();
+    s.gpsHdop = gps.hdop.hdop();
+    s.gpsSatellites = gps.satellites.value();
+    s.gpsAltitudeValid = gps.altitude.isValid() && gps.altitude.age() <= 5000UL && isfinite(s.gpsAltitude);
+    s.gpsHdopValid = gps.hdop.isValid() && gps.hdop.age() <= 5000UL && isfinite(s.gpsHdop) && s.gpsHdop > 0;
+    s.gpsSatellitesValid = gps.satellites.isValid() && gps.satellites.age() <= 5000UL;
   } else {
     s.state[GPS] = SENSOR_STATE_NO_FIX;
   }
@@ -357,17 +365,29 @@ struct Publisher {
       if (sample.state[AHT] == SENSOR_STATE_OK &&
           (!numeric(client, MQTT_TOPIC_PREFIX "/humidity", sample.humidity) ||
            !numeric(client, MQTT_TOPIC_PREFIX "/temphum", sample.ahtTemp))) return false;
+      // Magnus approximation above liquid water, using the paired AHT sample.
+      if (sample.state[AHT] == SENSOR_STATE_OK && sample.humidity > 0 && sample.humidity <= 100 &&
+          sample.ahtTemp >= -40 && sample.ahtTemp <= 60) {
+        const double alpha = log(sample.humidity / 100.0) + 17.62 * sample.ahtTemp / (243.12 + sample.ahtTemp);
+        const double dew = 243.12 * alpha / (17.62 - alpha);
+        if (isfinite(dew) && !numeric(client, MQTT_TOPIC_PREFIX "/dewpoint", dew)) return false;
+      }
       if (sample.state[VOLTAGE] == SENSOR_STATE_OK &&
           !numeric(client, MQTT_TOPIC_PREFIX "/voltage", sample.voltage, 3)) return false;
       if (sample.state[GPS] == SENSOR_STATE_OK &&
           (!numeric(client, MQTT_TOPIC_PREFIX "/lat_dd", sample.latitude, 6) ||
            !numeric(client, MQTT_TOPIC_PREFIX "/lon_dd", sample.longitude, 6))) return false;
+      if (sample.state[GPS] == SENSOR_STATE_OK &&
+          ((sample.gpsAltitudeValid && !numeric(client, MQTT_TOPIC_PREFIX "/gps/altitude", sample.gpsAltitude)) ||
+           (sample.gpsHdopValid && !numeric(client, MQTT_TOPIC_PREFIX "/gps/hdop", sample.gpsHdop)) ||
+           (sample.gpsSatellitesValid && !numeric(client, MQTT_TOPIC_PREFIX "/gps/satellites", sample.gpsSatellites, 0)))) return false;
       if (sample.state[NTP] == SENSOR_STATE_OK &&
           !client.publish(MQTT_TOPIC_PREFIX "/timestamp", sample.timestamp)) return false;
       if (sample.state[MAG] == SENSOR_STATE_OK &&
           (!numeric(client, MQTT_TOPIC_PREFIX "/magx", sample.x) ||
            !numeric(client, MQTT_TOPIC_PREFIX "/magy", sample.y) ||
            !numeric(client, MQTT_TOPIC_PREFIX "/magz", sample.z) ||
+           !numeric(client, MQTT_TOPIC_PREFIX "/mag/magnitude", sqrt(sample.x*sample.x + sample.y*sample.y + sample.z*sample.z)) ||
            (sample.headingValid && !numeric(client, MQTT_TOPIC_PREFIX "/magangle", sample.heading)))) return false;
       if (sample.state[HALL] == SENSOR_STATE_OK &&
           !numeric(client, MQTT_TOPIC_PREFIX "/hall", sample.hall)) return false;

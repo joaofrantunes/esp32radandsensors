@@ -154,8 +154,10 @@ As consultas parametrizadas usam a API do
 ## Observabilidade
 
 - Node-RED: nós Debug por tópico, resultado MySQL e captura de erros.
-- Dashboard web: 16 gráficos, janela de 24 h para radiação/CPM e
-  uma hora para os restantes gráficos. A janela é apenas da interface.
+- Dashboard web: 16 gráficos originais e 16 novos gráficos V1.6,
+  janela de 24 h para radiação/CPM e novos gráficos. A janela é apenas da interface.
+- V1.6: [contrato adicional de estatísticas e diagnósticos](geiger-v16.md),
+  sete tópicos e três novas tabelas, sem modificar o contrato legado.
 - MySQL: histórico enquanto a política de retenção do servidor o permitir.
 - IFTTT: alerta opcional aos 200 CPM, rearme abaixo de 100 CPM.
 - Perdas MQTT, duplicados e reenvios não são deduplicados sem um ID

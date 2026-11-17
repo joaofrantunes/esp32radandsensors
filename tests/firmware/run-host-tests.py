@@ -54,6 +54,12 @@ def main():
             list(executor.map(check_syntax, itertools.product([2, 3], patterns)))
         print("PASS: 32 isolated/combined mock syntax configurations", flush=True)
 
+        geiger = tmp / "geigerstats"
+        subprocess.run(base + [str(here / "test_geiger.cpp"), "-o", str(geiger)], check=True)
+        subprocess.run([str(geiger)], check=True)
+        subprocess.run(base + ["-DENABLE_DOSE_ESTIMATE=1", "-DENABLE_GEIGER=1",
+                              "-fsyntax-only", "-x", "c++", str(sketch)], check=True)
+
         for version in (2, 3):
             binary = tmp / ("extras" + str(version))
             values = {**dict.fromkeys(extra, 1), **dict.fromkeys(cloud, 0)}

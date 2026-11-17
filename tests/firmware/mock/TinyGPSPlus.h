@@ -8,4 +8,9 @@ struct FakeLocation {
   double lat(){return latitude;}
   double lng(){return longitude;}
 };
-struct TinyGPSPlus { FakeLocation location; bool encode(char){return true;} };
+struct FakeGpsValue {
+  bool valid=true; unsigned long ageMs=0;
+  bool isValid(){return valid;} unsigned long age(){return ageMs;}
+  double meters(){return 42.0;} double hdop(){return 1.2;} unsigned long value(){return 8;}
+};
+struct TinyGPSPlus { FakeLocation location; FakeGpsValue altitude, hdop, satellites; bool encode(char){return true;} };

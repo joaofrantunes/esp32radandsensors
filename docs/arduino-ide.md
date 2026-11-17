@@ -1,10 +1,13 @@
 # Arduino IDE — exemplo de configuração
 
-Referência para o firmware V1.5.0, compilado pelo utilizador com Arduino IDE
+Referência de configuração da V1.5.0, compilada pelo utilizador com Arduino IDE
 1.8.18 e o pacote de placas Arduino-ESP32 2.0.16, em novembro de 2026.
 O exemplo reproduz as opções observadas; a porta série e os sensores devem
 ser adaptados à estação real. A compilação não comprova a ligação física
 nem o funcionamento de todos os módulos opcionais.
+
+A V1.6.0 mantém a mesma placa, core e bibliotecas; a compilação real da
+nova versão deve ser confirmada no Arduino IDE. Ver [guia V1.6](geiger-v16.md).
 
 ## 1. Instalar o suporte ESP32
 
@@ -46,7 +49,7 @@ Pesquisar os nomes abaixo e instalar as dependências propostas pelo gestor.
 
 | Nome no gestor de bibliotecas | Autor | Header / função | Quando instalar |
 |---|---|---|---|
-| [PubSubClient](https://github.com/knolleary/pubsubclient) | Nick O'Leary | `PubSubClient.h` — MQTT | Sempre |
+| [PubSubClient](https://github.com/knolleary/pubsubclient) | Nick O'Leary | `PubSubClient.h` — MQTT (usar 2.8 com V1.6, que utiliza `setBufferSize`) | Sempre |
 | [Adafruit BMP280 Library](https://github.com/adafruit/Adafruit_BMP280_Library) | Adafruit | `Adafruit_BMP280.h` — temperatura, pressão e altitude | `ENABLE_BMP280=1` |
 | [Adafruit Unified Sensor](https://github.com/adafruit/Adafruit_Sensor) | Adafruit | `Adafruit_Sensor.h` — dependência BMP280 | `ENABLE_BMP280=1` |
 | [Adafruit BusIO](https://github.com/adafruit/Adafruit_BusIO) | Adafruit | Adaptadores I²C/SPI — dependência BMP280 | `ENABLE_BMP280=1` |
@@ -111,6 +114,7 @@ retirá-las para que não substituam estas opções.
 | `ENABLE_LORA` | 0 | 0 | 0 | Rádio, antena, frequência e gateway/recetor compatíveis |
 | `ENABLE_IFTTT` | 0 | 0 | 0 | Bibliotecas e credenciais válidas |
 | `ENABLE_THINGSPEAK` | 0 | 0 | 0 | Bibliotecas e credenciais válidas |
+| `ENABLE_DOSE_ESTIMATE` | 0 | 0 | 0 | Estimativa não calibrada; consultar guia V1.6 |
 
 ¹ Exemplo de estação com apenas Geiger e BMP280 instalados.  
 ² Exemplo do perfil predefinido com Hall e temperatura interna ativados;
