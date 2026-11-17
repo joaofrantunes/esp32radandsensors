@@ -14,7 +14,9 @@ import tempfile
 from datetime import datetime, timezone
 
 ROOT = Path(__file__).resolve().parent.parent
-TABLES = ('ESP32GEIGERSTATS', 'ESP32DEVICE', 'ESP32EXTRA')
+# ESP32CPM was added in V1.5; older active flows can migrate directly
+# to V1.7 without ever having created its table.
+TABLES = ('ESP32CPM', 'ESP32GEIGERSTATS', 'ESP32DEVICE', 'ESP32EXTRA')
 PALETTES = ('node-red-dashboard', 'node-red-contrib-stackhero-mysql')
 CONFIG_TYPES = ('mqtt-broker', 'Stackhero-MySQL-Server')
 

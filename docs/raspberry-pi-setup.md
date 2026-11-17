@@ -83,7 +83,8 @@ Node-RED. Não usar uma conta administrativa para os INSERT de produção.
 3. Faz cópia do flow, ficheiro de credenciais, configuração e backup SQL em
    `/var/backups/esp32radandsensors/<data-UTC>`; acesso restrito ao administrador.
    Inclui configurações e manifests do runtime separadamente do projeto ativo.
-4. Cria apenas ESP32GEIGERSTATS, ESP32DEVICE e ESP32EXTRA se ausentes.
+4. Cria ESP32CPM (necessária para instalações anteriores à V1.5),
+   ESP32GEIGERSTATS, ESP32DEVICE e ESP32EXTRA se ausentes.
 5. Atualiza o flow por substituição atómica, mantendo os IDs e as configurações existentes.
 6. Reinicia Node-RED; se falhar, tenta repor o flow original. As tabelas novas
    não são apagadas e o backup SQL não é importado automaticamente.

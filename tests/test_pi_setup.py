@@ -53,6 +53,7 @@ class SetupTests(unittest.TestCase):
     def test_additive_schema(self):
         schema=(ROOT/'database/schema.sql').read_text()
         self.assertEqual(tuple(ddl_statements(schema)),TABLES)
+        self.assertIn('ESP32CPM', ddl_statements(schema))
         self.assertEqual(len(ddl_statements(schema,fresh=True)),20)
         for statement in ddl_statements(schema).values():
             self.assertTrue(statement.startswith('CREATE TABLE IF NOT EXISTS'))
