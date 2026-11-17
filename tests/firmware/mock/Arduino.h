@@ -13,6 +13,7 @@ using byte=uint8_t;
 #define LOW 0
 #define HIGH 1
 #define INPUT 0
+#define DISABLED 0x00 // ESP32 Arduino core esp32-hal-gpio.h (2.0.16).
 #define OUTPUT 1
 #define FALLING 2
 #define ESP_OK 0

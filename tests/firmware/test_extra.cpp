@@ -22,14 +22,14 @@ int main(){
   Serial2.bytes.push_back('X');
   tick(100);
   Publisher pub; pub.receive();
-  assert(pub.sample.state[AHT]==OK && pub.sample.state[GPS]==OK);
-  assert(pub.sample.state[MAG]==OK && pub.sample.headingValid && pub.sample.heading==0);
-  assert(pub.sample.state[VOLTAGE]==OK && fabs(pub.sample.voltage-3.72)<0.0001);
-  assert(pub.sample.state[INTTEMP]==OK);
+  assert(pub.sample.state[AHT]==SENSOR_STATE_OK && pub.sample.state[GPS]==SENSOR_STATE_OK);
+  assert(pub.sample.state[MAG]==SENSOR_STATE_OK && pub.sample.headingValid && pub.sample.heading==0);
+  assert(pub.sample.state[VOLTAGE]==SENSOR_STATE_OK && fabs(pub.sample.voltage-3.72)<0.0001);
+  assert(pub.sample.state[INTTEMP]==SENSOR_STATE_OK);
 #if EXTRA_HALL_SUPPORTED
-  assert(pub.sample.state[HALL]==OK && pub.sample.hall==0);
+  assert(pub.sample.state[HALL]==SENSOR_STATE_OK && pub.sample.hall==0);
 #else
-  assert(pub.sample.state[HALL]==UNSUPPORTED);
+  assert(pub.sample.state[HALL]==SENSOR_STATE_UNSUPPORTED);
 #endif
   assert(LoRa.packets==1);
   assert(pub.publish(mqttClient,100));
@@ -50,8 +50,8 @@ int main(){
   gps.location.ageMs=9000; Serial2.bytes.push_back('X');
   tick(60100);
   pub.receive();
-  assert(pub.sample.state[AHT]==UNAVAILABLE && pub.sample.state[MAG]==UNAVAILABLE);
-  assert(pub.sample.state[VOLTAGE]==UNAVAILABLE && pub.sample.state[GPS]==NO_FIX);
+  assert(pub.sample.state[AHT]==SENSOR_STATE_UNAVAILABLE && pub.sample.state[MAG]==SENSOR_STATE_UNAVAILABLE);
+  assert(pub.sample.state[VOLTAGE]==SENSOR_STATE_UNAVAILABLE && pub.sample.state[GPS]==SENSOR_STATE_NO_FIX);
   assert(pub.publish(mqttClient,60100));
   assert(!emitted("esp32/humidity") && !emitted("esp32/lat_dd") && !emitted("esp32/voltage"));
   puts("Extra sensor mock logic PASS");

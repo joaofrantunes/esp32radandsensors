@@ -29,7 +29,12 @@
 #endif
 
 namespace ExtraSensors {
-enum State : uint8_t { DISABLED, WAITING, OK, UNAVAILABLE, NO_FIX, UNSUPPORTED, STALE };
+// Prefix enumerators to avoid ESP32 macros (e.g. DISABLED in esp32-hal-gpio.h).
+enum State : uint8_t {
+  SENSOR_STATE_DISABLED, SENSOR_STATE_WAITING, SENSOR_STATE_OK,
+  SENSOR_STATE_UNAVAILABLE, SENSOR_STATE_NO_FIX, SENSOR_STATE_UNSUPPORTED,
+  SENSOR_STATE_STALE
+};
 enum Module : uint8_t { AHT, VOLTAGE, GPS, NTP, MAG, LORA, HALL, INTTEMP, MODULE_COUNT };
 struct Snapshot {
   State state[MODULE_COUNT];
@@ -48,25 +53,25 @@ constexpr const char *STATUS_TOPICS[] = {
 };
 inline const char *stateName(State s) {
   switch (s) {
-    case DISABLED: return "disabled";
-    case WAITING: return "waiting";
-    case OK: return "ok";
-    case UNAVAILABLE: return "unavailable";
-    case NO_FIX: return "no_fix";
-    case UNSUPPORTED: return "unsupported";
+    case SENSOR_STATE_DISABLED: return "disabled";
+    case SENSOR_STATE_WAITING: return "waiting";
+    case SENSOR_STATE_OK: return "ok";
+    case SENSOR_STATE_UNAVAILABLE: return "unavailable";
+    case SENSOR_STATE_NO_FIX: return "no_fix";
+    case SENSOR_STATE_UNSUPPORTED: return "unsupported";
     default: return "stale";
   }
 }
 inline Snapshot initialSnapshot() {
   Snapshot s = {};
-  s.state[AHT] = ENABLE_AHT ? WAITING : DISABLED;
-  s.state[VOLTAGE] = ENABLE_VOLTAGE ? WAITING : DISABLED;
-  s.state[GPS] = ENABLE_GPS ? WAITING : DISABLED;
-  s.state[NTP] = ENABLE_NTP ? WAITING : DISABLED;
-  s.state[MAG] = ENABLE_MAG ? WAITING : DISABLED;
-  s.state[LORA] = ENABLE_LORA ? WAITING : DISABLED;
-  s.state[HALL] = ENABLE_HALL ? (EXTRA_HALL_SUPPORTED ? WAITING : UNSUPPORTED) : DISABLED;
-  s.state[INTTEMP] = ENABLE_INTTEMP ? WAITING : DISABLED;
+  s.state[AHT] = ENABLE_AHT ? SENSOR_STATE_WAITING : SENSOR_STATE_DISABLED;
+  s.state[VOLTAGE] = ENABLE_VOLTAGE ? SENSOR_STATE_WAITING : SENSOR_STATE_DISABLED;
+  s.state[GPS] = ENABLE_GPS ? SENSOR_STATE_WAITING : SENSOR_STATE_DISABLED;
+  s.state[NTP] = ENABLE_NTP ? SENSOR_STATE_WAITING : SENSOR_STATE_DISABLED;
+  s.state[MAG] = ENABLE_MAG ? SENSOR_STATE_WAITING : SENSOR_STATE_DISABLED;
+  s.state[LORA] = ENABLE_LORA ? SENSOR_STATE_WAITING : SENSOR_STATE_DISABLED;
+  s.state[HALL] = ENABLE_HALL ? (EXTRA_HALL_SUPPORTED ? SENSOR_STATE_WAITING : SENSOR_STATE_UNSUPPORTED) : SENSOR_STATE_DISABLED;
+  s.state[INTTEMP] = ENABLE_INTTEMP ? SENSOR_STATE_WAITING : SENSOR_STATE_DISABLED;
   return s;
 }
 static QueueHandle_t queue = nullptr;
@@ -250,7 +255,7 @@ inline void tick(uint32_t now) {
   Snapshot s = initialSnapshot();
   s.sampledAt = now;
 #if ENABLE_AHT
-  s.state[AHT] = readAht(s.humidity, s.ahtTemp) ? OK : UNAVAILABLE;
+  s.state[AHT] = readAht(s.humidity, s.ahtTemp) ? SENSOR_STATE_OK : SENSOR_STATE_UNAVAILABLE;
 #endif
 #if ENABLE_VOLTAGE
   uint32_t sumMv = 0;
@@ -264,25 +269,25 @@ inline void tick(uint32_t now) {
   s.voltage = adc * VOLTAGE_DIVIDER_GAIN + VOLTAGE_OFFSET_V;
   // A zero ADC can also be a disconnected divider: suppress ambiguous readings.
   s.state[VOLTAGE] = !saturated && sumMv > 0 && isfinite(s.voltage) &&
-                     s.voltage >= 0.0 ? OK : UNAVAILABLE;
+                     s.voltage >= 0.0 ? SENSOR_STATE_OK : SENSOR_STATE_UNAVAILABLE;
 #endif
 #if ENABLE_GPS
   if (!sawGpsByte || now - lastGpsByte > 5000UL) {
-    s.state[GPS] = UNAVAILABLE;
+    s.state[GPS] = SENSOR_STATE_UNAVAILABLE;
   } else if (gps.location.isValid() && gps.location.age() <= 5000UL) {
     s.latitude = gps.location.lat();
     s.longitude = gps.location.lng();
     s.state[GPS] = isfinite(s.latitude) && isfinite(s.longitude) &&
-        fabs(s.latitude) <= 90.0 && fabs(s.longitude) <= 180.0 ? OK : NO_FIX;
+        fabs(s.latitude) <= 90.0 && fabs(s.longitude) <= 180.0 ? SENSOR_STATE_OK : SENSOR_STATE_NO_FIX;
   } else {
-    s.state[GPS] = NO_FIX;
+    s.state[GPS] = SENSOR_STATE_NO_FIX;
   }
 #endif
 #if ENABLE_NTP
-  s.state[NTP] = formatUtc(time(nullptr), s.timestamp, sizeof(s.timestamp)) ? OK : WAITING;
+  s.state[NTP] = formatUtc(time(nullptr), s.timestamp, sizeof(s.timestamp)) ? SENSOR_STATE_OK : SENSOR_STATE_WAITING;
 #endif
 #if ENABLE_MAG
-  s.state[MAG] = readMag(s) ? OK : UNAVAILABLE;
+  s.state[MAG] = readMag(s) ? SENSOR_STATE_OK : SENSOR_STATE_UNAVAILABLE;
 #endif
 #if ENABLE_LORA
   if (!loraReady) {
@@ -290,7 +295,7 @@ inline void tick(uint32_t now) {
     LoRa.setPins(LORA_SS_PIN, LORA_RST_PIN, LORA_DIO0_PIN);
     loraReady = LoRa.begin(LORA_FREQUENCY_HZ);
   }
-  s.state[LORA] = loraReady ? OK : UNAVAILABLE;
+  s.state[LORA] = loraReady ? SENSOR_STATE_OK : SENSOR_STATE_UNAVAILABLE;
   // Diagnostic/CPM transmission only, not a gateway or delivery confirmation.
   if (loraReady && !loraSending && LoRa.beginPacket()) {
     char packet[64];
@@ -301,19 +306,19 @@ inline void tick(uint32_t now) {
     LoRa.print(packet);
     loraSending = LoRa.endPacket(true) != 0;
     loraStarted = millis();
-    if (!loraSending) s.state[LORA] = UNAVAILABLE;
+    if (!loraSending) s.state[LORA] = SENSOR_STATE_UNAVAILABLE;
   }
 #endif
 #if EXTRA_HALL_SUPPORTED
   s.hall = hallRead();
-  s.state[HALL] = OK; // zero is a valid signed raw reading.
+  s.state[HALL] = SENSOR_STATE_OK; // zero is a valid signed raw reading.
 #endif
 #if ENABLE_INTTEMP
 #if defined(CONFIG_IDF_TARGET_ESP32) && CONFIG_IDF_TARGET_ESP32
   s.intTemp = temperatureRead();
-  s.state[INTTEMP] = isfinite(s.intTemp) && s.intTemp >= -40.0 && s.intTemp <= 125.0 ? OK : UNAVAILABLE;
+  s.state[INTTEMP] = isfinite(s.intTemp) && s.intTemp >= -40.0 && s.intTemp <= 125.0 ? SENSOR_STATE_OK : SENSOR_STATE_UNAVAILABLE;
 #else
-  s.state[INTTEMP] = UNSUPPORTED;
+  s.state[INTTEMP] = SENSOR_STATE_UNSUPPORTED;
 #endif
 #endif
   // Snapshot can be transferred across tasks without sharing mutable sensors.
@@ -345,28 +350,28 @@ struct Publisher {
     if (!pending && !statusRefresh) return true;
     for (unsigned i = 0; i < MODULE_COUNT; ++i) {
       State state = sample.state[i];
-      if (!fresh && state == OK) state = STALE;
+      if (!fresh && state == SENSOR_STATE_OK) state = SENSOR_STATE_STALE;
       if (!client.publish(STATUS_TOPICS[i], stateName(state), true)) return false;
     }
     if (pending && fresh) {
-      if (sample.state[AHT] == OK &&
+      if (sample.state[AHT] == SENSOR_STATE_OK &&
           (!numeric(client, MQTT_TOPIC_PREFIX "/humidity", sample.humidity) ||
            !numeric(client, MQTT_TOPIC_PREFIX "/temphum", sample.ahtTemp))) return false;
-      if (sample.state[VOLTAGE] == OK &&
+      if (sample.state[VOLTAGE] == SENSOR_STATE_OK &&
           !numeric(client, MQTT_TOPIC_PREFIX "/voltage", sample.voltage, 3)) return false;
-      if (sample.state[GPS] == OK &&
+      if (sample.state[GPS] == SENSOR_STATE_OK &&
           (!numeric(client, MQTT_TOPIC_PREFIX "/lat_dd", sample.latitude, 6) ||
            !numeric(client, MQTT_TOPIC_PREFIX "/lon_dd", sample.longitude, 6))) return false;
-      if (sample.state[NTP] == OK &&
+      if (sample.state[NTP] == SENSOR_STATE_OK &&
           !client.publish(MQTT_TOPIC_PREFIX "/timestamp", sample.timestamp)) return false;
-      if (sample.state[MAG] == OK &&
+      if (sample.state[MAG] == SENSOR_STATE_OK &&
           (!numeric(client, MQTT_TOPIC_PREFIX "/magx", sample.x) ||
            !numeric(client, MQTT_TOPIC_PREFIX "/magy", sample.y) ||
            !numeric(client, MQTT_TOPIC_PREFIX "/magz", sample.z) ||
            (sample.headingValid && !numeric(client, MQTT_TOPIC_PREFIX "/magangle", sample.heading)))) return false;
-      if (sample.state[HALL] == OK &&
+      if (sample.state[HALL] == SENSOR_STATE_OK &&
           !numeric(client, MQTT_TOPIC_PREFIX "/hall", sample.hall)) return false;
-      if (sample.state[INTTEMP] == OK &&
+      if (sample.state[INTTEMP] == SENSOR_STATE_OK &&
           !numeric(client, MQTT_TOPIC_PREFIX "/inttemp", sample.intTemp)) return false;
     }
     pending = statusRefresh = false;
