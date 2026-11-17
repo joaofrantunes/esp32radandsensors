@@ -1,5 +1,8 @@
 # V1.6.0 — CAJOE / J305 e monitorização avançada
 
+Referência histórica V1.6.0. Para a deteção adicional BMP/BME280 e HMC/QMC5883L,
+consultar [V1.7.0](hardware-v17.md). O protocolo MQTT e esquema SQL mantêm-se.
+
 Esta versão mantém o contador CAJOE RadiationD-v1.1, GPIO13, interrupção em
 flanco descendente, sensores opcionais, alarmes originais, tópicos MQTT e
 tabelas históricas. O utilizador confirmou que o módulo corresponde ao da

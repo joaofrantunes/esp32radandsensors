@@ -67,6 +67,20 @@ def main():
                            flags(values) + [str(here / "test_extra.cpp"), "-o", str(binary)], check=True)
             subprocess.run([str(binary)], check=True)
 
+        detection = tmp / "detection"
+        subprocess.run(base + ["-DENABLE_BMP280=1", "-DENABLE_BME280=1", "-DENABLE_MAG=1",
+                               str(here / "test_detection.cpp"), "-o", str(detection)], check=True)
+        subprocess.run([str(detection)], check=True)
+        calibration = tmp / "calibration"
+        subprocess.run(base + ["-DENABLE_MAG=1", "-DMAG_OFFSET_X=10", "-DMAG_OFFSET_Y=10",
+                               "-DMAG_OFFSET_Z=-3", "-DMAG_SCALE_X=2", "-DMAG_SCALE_Y=0.5",
+                               "-DMAG_DECLINATION_DEG=10", str(here / "test_calibration.cpp"),
+                               "-o", str(calibration)], check=True)
+        subprocess.run([str(calibration)], check=True)
+        for profile in (0, 1):
+            subprocess.run(base + [f"-DSTATION_PROFILE={profile}", "-DENABLE_MAG_CAL_LOG=1",
+                                  "-fsyntax-only", "-x", "c++", str(sketch)], check=True)
+
         negative = subprocess.run(base + ["-DENABLE_LED=1", "-DSTATUS_LED_PIN=22",
                                           "-fsyntax-only", "-x", "c++", str(sketch)],
                                   capture_output=True)

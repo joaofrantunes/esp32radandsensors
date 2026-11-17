@@ -91,23 +91,32 @@ struct PubSubClient{
 };
 struct TwoWire {
   unsigned starts=0; bool present=true; bool busy=false; int address=0; uint8_t reg=0;
+  int baroAddress=0x77; uint8_t baroChip=0x58; int magnetometer=0x1e;
+  uint8_t qmcId=0xff, qmcStatus=1; bool hmcIdValid=true;
+  bool ahtCalibrated=true; uint8_t ahtInitCommand=0xe1;
   std::deque<int> rx;
   void begin(int,int,int){++starts;} void setTimeOut(int){} void beginTransmission(int a){address=a;}
-  size_t write(const uint8_t *b,size_t n){if(n)reg=b[0];return n;}
-  int endTransmission(){return present?0:4;}
+  size_t write(const uint8_t *b,size_t n){if(n)reg=b[0];if(present&&address==0x38&&n==3&&b[0]==ahtInitCommand)ahtCalibrated=true;return n;}
+  bool hasAddress(int a){return present&&(a==0x38||a==0x3c||a==baroAddress||a==magnetometer);}
+  int endTransmission(){return hasAddress(address)?0:4;}
   size_t requestFrom(uint8_t addr,size_t len){
-    rx.clear(); if(!present)return 0;
-    if(addr==0x38 && len==1)rx={busy?0x88:0x08};
-    if(addr==0x38 && len==6)rx={busy?0x88:0x08,0x80,0,0x06,0,0};
-    if(addr==0x1e && reg==0x0a)rx={'H','4','3'};
+    rx.clear(); if(!hasAddress(addr))return 0;
+    if(addr==0x38 && len==1)rx={(busy?0x80:0)|(ahtCalibrated?0x08:0)};
+    if(addr==0x38 && len==6)rx={(busy?0x80:0)|(ahtCalibrated?0x08:0),0x80,0,0x06,0,0};
+    if(addr==baroAddress && reg==0xd0 && len==1)rx={baroChip};
+    if(addr==0x1e && reg==0x0a)rx={'H','4',hmcIdValid?'3':'0'};
     if(addr==0x1e && reg==0x09)rx={1};
-    if(addr==0x1e && reg==0x03)rx={0x04,0x4c,0,0,0,0};
+    if(addr==0x1e && reg==0x03)rx={0x04,0x42,0,0,0,0};
+    if(addr==0x0d && reg==0x0d)rx={qmcId};
+    if(addr==0x0d && reg==0x06)rx={qmcStatus};
+    if(addr==0x0d && reg==0x00)rx={0xb8,0x0b,0x24,0xfa,0x84,0x03}; // 3000,-1500,900
     return rx.size();
   }
   int read(){if(rx.empty())return -1;int v=rx.front();rx.pop_front();return v;}
 };
 inline TwoWire Wire;
-struct Adafruit_BMP280{Adafruit_BMP280(TwoWire*){} bool begin(int addr){return addr==0x77;} float readTemperature(){return 21;} float readPressure(){return 101325;}};
+struct Adafruit_BMP280{Adafruit_BMP280(TwoWire*){} bool begin(int addr){return Wire.hasAddress(addr)&&Wire.baroChip==0x58;} float readTemperature(){return 21;} float readPressure(){return 101325;}};
+struct Adafruit_BME280{bool begin(int addr,TwoWire*){return Wire.hasAddress(addr)&&Wire.baroChip==0x60;} float readTemperature(){return 22;} float readPressure(){return 101000;} float readHumidity(){return 45;}};
 struct IFTTTWebhook{IFTTTWebhook(const char*,const char*){} int trigger(const char*){return 0;}};
 struct ThingSpeakType {void begin(WiFiClient&){} int writeField(unsigned long,int,float,const char*){return 200;}};
 inline ThingSpeakType ThingSpeak;

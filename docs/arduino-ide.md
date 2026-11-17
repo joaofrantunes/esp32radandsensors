@@ -6,8 +6,9 @@ O exemplo reproduz as opções observadas; a porta série e os sensores devem
 ser adaptados à estação real. A compilação não comprova a ligação física
 nem o funcionamento de todos os módulos opcionais.
 
-A V1.6.0 mantém a mesma placa, core e bibliotecas; a compilação real da
-nova versão deve ser confirmada no Arduino IDE. Ver [guia V1.6](geiger-v16.md).
+A V1.7.0 mantém a mesma placa e core e acrescenta a biblioteca Adafruit BME280
+ao perfil predefinido. A compilação real deve ser confirmada no Arduino IDE.
+Ver [guia V1.7](hardware-v17.md) e [guia V1.6](geiger-v16.md).
 
 ## 1. Instalar o suporte ESP32
 
@@ -51,6 +52,7 @@ Pesquisar os nomes abaixo e instalar as dependências propostas pelo gestor.
 |---|---|---|---|
 | [PubSubClient](https://github.com/knolleary/pubsubclient) | Nick O'Leary | `PubSubClient.h` — MQTT (usar 2.8 com V1.6, que utiliza `setBufferSize`) | Sempre |
 | [Adafruit BMP280 Library](https://github.com/adafruit/Adafruit_BMP280_Library) | Adafruit | `Adafruit_BMP280.h` — temperatura, pressão e altitude | `ENABLE_BMP280=1` |
+| [Adafruit BME280 Library](https://github.com/adafruit/Adafruit_BME280_Library) | Adafruit | `Adafruit_BME280.h` — variante BME da placa 280 | `ENABLE_BMP280=1` e `ENABLE_BME280=1` |
 | [Adafruit Unified Sensor](https://github.com/adafruit/Adafruit_Sensor) | Adafruit | `Adafruit_Sensor.h` — dependência BMP280 | `ENABLE_BMP280=1` |
 | [Adafruit BusIO](https://github.com/adafruit/Adafruit_BusIO) | Adafruit | Adaptadores I²C/SPI — dependência BMP280 | `ENABLE_BMP280=1` |
 | [TinyGPSPlus](https://github.com/mikalhart/TinyGPSPlus) | Mikal Hart | `TinyGPSPlus.h` — interpretação NMEA | `ENABLE_GPS=1` |
@@ -78,7 +80,7 @@ desativado até migrar/validar a integração, incluindo o construtor
 
 - `Arduino.h`, `WiFi.h`, `WiFiClientSecure.h`, `Wire.h`, `SPI.h`, FreeRTOS,
   watchdog, NTP/tempo e APIs ESP32: não instalar uma segunda biblioteca WiFi.
-- AHT10/AHT20 (humidade), HMC5883L (magnetómetro): drivers I²C integrados
+- AHT10/AHT20 (humidade), HMC5883L/QMC5883L (magnetómetro): drivers I²C integrados
   no firmware; não exigem bibliotecas Arduino adicionais.
 - Geiger, ADC, Hall e temperatura interna: utilizam APIs do core ESP32.
 
@@ -102,13 +104,15 @@ retirá-las para que não substituam estas opções.
 |---|---:|---:|---:|---|
 | `ENABLE_GEIGER` | 1 | 1 | 1 | Geiger ligado; primeira leitura CPH após uma hora |
 | `ENABLE_BMP280` | 1 | 1 | 1 | BMP280 ligado ao I²C |
+| `ENABLE_BME280` | 0 | 1 | 1 | Deteção adicional de BME280 e biblioteca Adafruit BME280 |
 | `ENABLE_AHT` | 0 | 1 | 1 | AHT10/AHT20 ligado ao I²C |
 | `ENABLE_GPS` | 0 | 1 | 1 | GPS UART ligado, com fix válido |
 | `ENABLE_NTP` | 1 | 1 | 1 | Rede e servidor NTP acessíveis |
-| `ENABLE_HALL` | 0 | 0 | 1 | ESP32 clássico e core 2.x |
-| `ENABLE_INTTEMP` | 0 | 0 | 1 | Temperatura interna de diagnóstico, não ambiental |
+| `ENABLE_HALL` | 0 | 1 | 1 | ESP32 clássico e core 2.x |
+| `ENABLE_INTTEMP` | 0 | 1 | 1 | Temperatura interna de diagnóstico, não ambiental |
 | `ENABLE_VOLTAGE` | 0 | 0 | 0 | Divisor resistivo e calibração confirmados; entrada ADC protegida |
-| `ENABLE_MAG` | 0 | 0 | 0 | HMC5883L, não QMC5883; calibração para orientação |
+| `ENABLE_MAG` | 0 | 1 | 1 | HMC5883L ou QMC5883L; calibração para orientação |
+| `ENABLE_MAG_CAL_LOG` | 0 | 0 | 1 | Registo de amostras brutas para calibração |
 | `ENABLE_LCD` | 0 | 0 | 0 | OLED SSD1306 e biblioteca compatível |
 | `ENABLE_LED` | 0 | 0 | 0 | GPIO de saída livre configurado |
 | `ENABLE_LORA` | 0 | 0 | 0 | Rádio, antena, frequência e gateway/recetor compatíveis |
@@ -117,12 +121,13 @@ retirá-las para que não substituam estas opções.
 | `ENABLE_DOSE_ESTIMATE` | 0 | 0 | 0 | Estimativa não calibrada; consultar guia V1.6 |
 
 ¹ Exemplo de estação com apenas Geiger e BMP280 instalados.  
-² Exemplo do perfil predefinido com Hall e temperatura interna ativados;
+² Exemplo do perfil predefinido com registo de calibração ativado;
 requer validação física e compilação com os módulos selecionados. Ajustar AHT/GPS
 para 0 se não estiverem instalados.
 
-O perfil predefinido corresponde às flags atualmente no repositório; nenhuma
-flag foi alterada por este guia. Ativar módulos opcionais individualmente e
+O perfil predefinido corresponde a `STATION_PROFILE=1` na V1.7.0.
+Usar `STATION_PROFILE=0` para as predefinições genéricas V1.6 e ajustar flags.
+Ativar módulos opcionais individualmente e
 recompilar antes de carregar. Não ligar 5 V diretamente ao GPIO34. Não reutilizar
 GPIO22 como LED, pois é SCL do I²C. Consultar o [guia de arquitetura](architecture.md)
 para ligações, tópicos MQTT e dados encaminhados para o Node-RED.
@@ -140,6 +145,7 @@ para ligações, tópicos MQTT e dados encaminhados para o Node-RED.
 | `credentials.h: No such file or directory` | Copiar `credentials.example.h` para `credentials.h` na pasta do sketch. |
 | `PubSubClient.h: No such file or directory` | Instalar PubSubClient, de Nick O'Leary. |
 | `Adafruit_BMP280.h: No such file or directory` | Instalar Adafruit BMP280 Library e dependências ou desativar BMP280 se ausente. |
+| `Adafruit_BME280.h: No such file or directory` | Instalar Adafruit BME280 Library ou usar `ENABLE_BME280 0` se BMP280 estiver confirmado. |
 | `TinyGPSPlus.h: No such file or directory` | Instalar TinyGPSPlus ou desativar GPS se ausente. |
 | Múltiplas bibliotecas para `WiFi.h` | Confirmar que o IDE seleciona a biblioteca do pacote `esp32` 2.0.16. O aviso por si só não é erro. |
 | Gráfico vazio no Node-RED | Confirmar flag, sensor físico, ligação MQTT e existência de uma leitura válida. Não fabricar zeros. |

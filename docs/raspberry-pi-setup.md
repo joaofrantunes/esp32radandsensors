@@ -83,7 +83,7 @@ Node-RED. Não usar uma conta administrativa para os INSERT de produção.
 Se ocorrer uma falha, consultar o backup e o estado de `systemctl status nodered`.
 O instalador confirma que o serviço ficou ativo, não que as medições reais já
 chegaram ao dashboard. Confirmar MQTT, dashboard e INSERTs; só depois carregar
-o firmware V1.6 se ainda não estiver instalado. Nunca publicar os backups,
+o firmware V1.7 se ainda não estiver instalado. Nunca publicar os backups,
 que podem conter credenciais e localização GPS.
 
 ## Novo projeto num Raspberry Pi já preparado

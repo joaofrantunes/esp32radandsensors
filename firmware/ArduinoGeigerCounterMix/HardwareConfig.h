@@ -5,11 +5,23 @@
   Recompile and upload after changing these switches.
   Existing defines in credentials.h or build flags may override defaults.
 */
+// 0 = generic V1.6-compatible defaults; 1 = photographed CAJOE station.
+// Individual ENABLE_* overrides still take precedence.
+#ifndef STATION_PROFILE
+#define STATION_PROFILE 1
+#endif
+#if STATION_PROFILE != 0 && STATION_PROFILE != 1
+#error "STATION_PROFILE must be 0 or 1"
+#endif
 #ifndef ENABLE_GEIGER
 #define ENABLE_GEIGER 1
 #endif
 #ifndef ENABLE_BMP280
 #define ENABLE_BMP280 1
+#endif
+// Allow BME280 detection in the barometer slot. Requires Adafruit BME280.
+#ifndef ENABLE_BME280
+#define ENABLE_BME280 STATION_PROFILE
 #endif
 #ifndef ENABLE_LCD
 #define ENABLE_LCD 0
@@ -31,16 +43,16 @@
 #define ENABLE_VOLTAGE 0
 #endif
 #ifndef ENABLE_MAG
-#define ENABLE_MAG 0
+#define ENABLE_MAG STATION_PROFILE
 #endif
 #ifndef ENABLE_LORA
 #define ENABLE_LORA 0
 #endif
 #ifndef ENABLE_HALL
-#define ENABLE_HALL 0
+#define ENABLE_HALL STATION_PROFILE
 #endif
 #ifndef ENABLE_INTTEMP
-#define ENABLE_INTTEMP 0
+#define ENABLE_INTTEMP STATION_PROFILE
 #endif
 
 // J305 beta/gamma: uncalibrated example from the other CAJOE station.
@@ -68,6 +80,7 @@ static_assert(!ENABLE_DOSE_ESTIMATE || (ENABLE_GEIGER && GEIGER_USVH_PER_CPM >= 
 // Reject accidental values other than 0/1 at build time.
 #if (ENABLE_GEIGER != 0 && ENABLE_GEIGER != 1) || \
     (ENABLE_BMP280 != 0 && ENABLE_BMP280 != 1) || \
+    (ENABLE_BME280 != 0 && ENABLE_BME280 != 1) || \
     (ENABLE_LCD != 0 && ENABLE_LCD != 1) || \
     (ENABLE_LED != 0 && ENABLE_LED != 1) || \
     (ENABLE_IFTTT != 0 && ENABLE_IFTTT != 1) || \
@@ -100,12 +113,41 @@ static_assert(!ENABLE_DOSE_ESTIMATE || (ENABLE_GEIGER && GEIGER_USVH_PER_CPM >= 
 #define OLED_I2C_ADDRESS 0x3c
 #endif
 
-// AHT10/AHT20 (0x38 by default). HMC5883L only, not QMC5883.
+// AHT10/AHT20 family (0x38); auto-detect HMC5883L/QMC5883L.
 #ifndef AHT_I2C_ADDRESS
 #define AHT_I2C_ADDRESS 0x38
 #endif
 #ifndef MAG_DECLINATION_DEG
 #define MAG_DECLINATION_DEG 0.0 // Set current local declination after calibration.
+#endif
+// Optional hard-iron subtraction (uT) and per-axis scale correction.
+// Defaults intentionally leave measured field unchanged.
+#ifndef MAG_OFFSET_X
+#define MAG_OFFSET_X 0.0
+#endif
+#ifndef MAG_OFFSET_Y
+#define MAG_OFFSET_Y 0.0
+#endif
+#ifndef MAG_OFFSET_Z
+#define MAG_OFFSET_Z 0.0
+#endif
+#ifndef MAG_SCALE_X
+#define MAG_SCALE_X 1.0
+#endif
+#ifndef MAG_SCALE_Y
+#define MAG_SCALE_Y 1.0
+#endif
+#ifndef MAG_SCALE_Z
+#define MAG_SCALE_Z 1.0
+#endif
+static_assert(MAG_SCALE_X > 0 && MAG_SCALE_Y > 0 && MAG_SCALE_Z > 0,
+              "Magnetometer scale must be positive");
+// Enable temporarily to log rapid raw magnetic samples for calibration.
+#ifndef ENABLE_MAG_CAL_LOG
+#define ENABLE_MAG_CAL_LOG 0
+#endif
+#if ENABLE_MAG_CAL_LOG != 0 && ENABLE_MAG_CAL_LOG != 1
+#error "ENABLE_MAG_CAL_LOG must be 0 or 1"
 #endif
 #ifndef GPS_RX_PIN
 #define GPS_RX_PIN 16

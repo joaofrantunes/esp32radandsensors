@@ -9,8 +9,8 @@ histórico em MySQL.
 ```mermaid
 flowchart LR
     G["Geiger CAJOE"] --> E["ESP32"]
-    B["BMP280 / AHT / GPS"] --> E
-    X["ADC / HMC5883 / diagnósticos"] -.-> E
+    B["BMP/BME280 / AHT / GPS"] --> E
+    X["ADC / HMC/QMC5883 / diagnósticos"] -.-> E
     E -->|"Wi-Fi / MQTT"| M["Broker MQTT"]
     S["Outros publicadores opcionais"] -.-> M
     M --> N["Node-RED"]
@@ -31,7 +31,7 @@ O fluxo não recarrega automaticamente o histórico MySQL no dashboard.
 
 | Caminho | Finalidade |
 |---|---|
-| [firmware/ArduinoGeigerCounterMix/](firmware/ArduinoGeigerCounterMix/) | Firmware ESP32 V1.6.0 (estatísticas Geiger e sensores adicionais) |
+| [firmware/ArduinoGeigerCounterMix/](firmware/ArduinoGeigerCounterMix/) | Firmware ESP32 V1.7.0 (deteção automática e estatísticas Geiger) |
 | [HardwareConfig.h](firmware/ArduinoGeigerCounterMix/HardwareConfig.h) | Seleção dos módulos instalados, ecrã e GPIOs |
 | [credentials.example.h](firmware/ArduinoGeigerCounterMix/credentials.example.h) | Modelo de configuração, sem credenciais reais |
 | [ExtraSensors.h](firmware/ArduinoGeigerCounterMix/ExtraSensors.h) | Aquisição e publicação dos módulos adicionais |
@@ -41,6 +41,7 @@ O fluxo não recarrega automaticamente o histórico MySQL no dashboard.
 | [docs/architecture.md](docs/architecture.md) | Ligações, tópicos, tabelas e frequência |
 | [docs/arduino-ide.md](docs/arduino-ide.md) | Exemplo de configuração Arduino IDE, bibliotecas e perfis de sensores |
 | [docs/geiger-v16.md](docs/geiger-v16.md) | Estatísticas Geiger, CAJOE/J305, novos flows e migração da V1.5.0 |
+| [docs/hardware-v17.md](docs/hardware-v17.md) | Perfil da estação CAJOE, identificação I²C e calibração do magnetómetro |
 | [pi_setup/](pi_setup/) | Instalador/atualizador Python para Raspberry Pi com backup e migração seletiva |
 | [docs/raspberry-pi-setup.md](docs/raspberry-pi-setup.md) | Instruções de atualização automática do backend |
 | [tests/validate-flow.js](tests/validate-flow.js) | Testes locais do fluxo e do contrato SQL |
@@ -59,15 +60,15 @@ os módulos físicos da estação.
 
 1. Abrir `firmware/ArduinoGeigerCounterMix/ArduinoGeigerCounterMix.ino` no Arduino IDE.
 2. Instalar o suporte de placas Arduino-ESP32 e as bibliotecas PubSubClient,
-   Adafruit BMP280 e Adafruit BusIO/Unified Sensor. Instalar TinyGPSPlus
+   Adafruit BMP280, Adafruit BME280 e Adafruit BusIO/Unified Sensor. Instalar TinyGPSPlus
    quando GPS está ativado. SSD1306 (ThingPulse), LoRa (Sandeep Mistry),
-   IFTTTWebhook e ThingSpeak são opcionais. AHT10/AHT20 e HMC5883L
+   IFTTTWebhook e ThingSpeak são opcionais. AHT10/AHT20 e HMC5883L/QMC5883L
    utilizam o driver I²C integrado, sem biblioteca adicional.
 3. Copiar `credentials.example.h` para `credentials.h`. Preencher o SSID,
    a palavra-passe, endereço e porta do broker MQTT. Ativar serviços externos
    apenas se forem configurados no HardwareConfig.h.
 4. Confirmar o modelo de placa, as ligações e a tensão dos sinais antes de
-   compilar e carregar. A V1.6.0 preserva as ligações da versão esp32_v6: GPIO13 para
+   compilar e carregar. A V1.7.0 preserva as ligações da versão esp32_v6: GPIO13 para
    Geiger, GPIO21/22 para I²C, GPIO16/17 para GPS, GPIO34 para ADC.
    O LED está desativado porque GPIO22 é agora SCL.
 5. Abrir o monitor série a 115200 baud.
@@ -79,25 +80,28 @@ e recompilar/carregar o firmware. Cada opção aceita 1 (ativado) ou 0 (desativa
 
 | Opção | Predefinição | Efeito de desligar |
 |---|---:|---|
+| STATION_PROFILE | 1 | 0 = perfil genérico V1.6, sem deteção BME, magnetómetro e diagnósticos internos por defeito |
 | ENABLE_GEIGER | 1 | Sem interrupção Geiger, CPM, CPH nem alertas de radiação |
-| ENABLE_BMP280 | 1 | Sem acesso ao sensor nem publicação de temperatura, pressão e altitude |
+| ENABLE_BMP280 | 1 | Sem acesso ao barómetro BMP/BME nem publicação de temperatura, pressão e altitude |
+| ENABLE_BME280 | 1 | Sem suporte BME280; BMP280 continua disponível |
 | ENABLE_LCD | 0 | Sem inicialização nem biblioteca OLED |
 | ENABLE_LED | 0 | Sem configurar o GPIO nem subscrever comandos do LED |
 | ENABLE_AHT | 1 | Sem humidade/temperatura AHT10/AHT20 |
 | ENABLE_GPS | 1 | Sem UART GPS nem coordenadas |
 | ENABLE_NTP | 1 | Sem publicação do timestamp UTC sincronizado |
 | ENABLE_VOLTAGE | 0 | Sem ADC (requer divisor e calibração confirmados) |
-| ENABLE_MAG | 0 | Sem magnetómetro HMC5883L (não QMC5883) |
+| ENABLE_MAG | 1 | Sem magnetómetro HMC5883L/QMC5883L |
+| ENABLE_MAG_CAL_LOG | 0 | Sem registo série rápido de amostras brutas para calibração |
 | ENABLE_LORA | 0 | Sem emissor LoRa (requer frequência, antena e recetor confirmados) |
-| ENABLE_HALL | 0 | Sem Hall interno (apenas ESP32 clássico + core 2.x) |
-| ENABLE_INTTEMP | 0 | Sem diagnóstico da temperatura interna |
+| ENABLE_HALL | 1 | Sem Hall interno (apenas ESP32 clássico + core 2.x) |
+| ENABLE_INTTEMP | 1 | Sem diagnóstico da temperatura interna |
 | ENABLE_IFTTT | 0 | Sem alertas HTTP |
 | ENABLE_THINGSPEAK | 0 | Sem publicação ThingSpeak |
 | ENABLE_DOSE_ESTIMATE | 0 | Sem estimativa indicativa de dose (J305; não calibrada) |
 
 O I²C só é inicializado quando BMP280, AHT, magnetómetro ou OLED está ativado. O Geiger
 desativado também desativa os dependentes IFTTT/ThingSpeak.
-Se BMP280, AHT, HMC5883L ou OLED estiver ativado mas não responder,
+Se BMP/BME280, AHT, HMC/QMC5883L ou OLED estiver ativado mas não responder,
 assinala-se unavailable e tenta-se novamente periodicamente. Sem comunicação física
 de diagnóstico, o Geiger não consegue distinguir uma remoção de um período
 sem impulsos: desativá-lo explicitamente se for retirado.
@@ -123,7 +127,7 @@ rejeita conflitos entre GPIOs de módulos ativos durante a compilação.
 - ADC: média de 16 leituras em milivolts, ganho/offset configuráveis
   (v6: 2 e 0,42 V, valores provisórios), não ativar sem verificar o divisor
   resistivo e a tensão admissível na entrada GPIO34.
-- HMC5883L: identifica o chip, valida os dados e aceita eixos zero.
+- HMC5883L/QMC5883L: identifica a variante, valida os dados e aceita eixos zero.
   Orientação é aproximada, necessita nivelamento, calibração e declinação local.
 - LoRa: inicialização e envio assíncrono; não encerra SPI após cada envio.
   Apenas emissor de diagnóstico/CPM. Para entregar dados ao Node-RED
@@ -179,6 +183,8 @@ Para atualizar uma instalação V1.5.0, seguir a sequência e o backup em
 [docs/geiger-v16.md](docs/geiger-v16.md). O novo fluxo preserva os tópicos e
 tabelas anteriores e adiciona dados agrupados de radiação, diagnósticos e
 sensores. Não importar uma segunda cópia do fluxo completo em paralelo.
+Uma instalação V1.6.0 já atualizada não precisa de migrar o fluxo ou SQL para
+V1.7.0: o contrato MQTT e as tabelas são preservados.
 
 ### 5. Verificar ponta a ponta
 

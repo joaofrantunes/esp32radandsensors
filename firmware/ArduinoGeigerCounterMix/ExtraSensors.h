@@ -4,6 +4,7 @@
 // access happens in the Arduino measurement task; MQTT owns its own snapshot.
 #include <Arduino.h>
 #include "HardwareConfig.h"
+#include "I2CProbe.h"
 #include <PubSubClient.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
@@ -85,7 +86,11 @@ static uint32_t lastGpsByte = 0;
 static bool sawGpsByte = false;
 #endif
 #if ENABLE_MAG
-static bool magConfigured = false;
+enum MagKind : uint8_t { MAG_NONE, MAG_HMC5883L, MAG_QMC5883L };
+static MagKind magKind = MAG_NONE;
+#if ENABLE_MAG_CAL_LOG
+static uint32_t lastMagCal = 0;
+#endif
 #endif
 #if ENABLE_LORA
 static bool loraReady = false;
@@ -97,22 +102,10 @@ static double radioCpm = NAN;
 
 #if ENABLE_AHT || ENABLE_MAG
 inline bool writeI2c(uint8_t addr, const uint8_t *bytes, size_t len) {
-  Wire.beginTransmission(addr);
-  if (Wire.write(bytes, len) != len) {
-    Wire.endTransmission();
-    return false;
-  }
-  return Wire.endTransmission() == 0;
+  return I2CProbe::write(addr, bytes, len);
 }
 inline bool readI2c(uint8_t addr, uint8_t *bytes, size_t len) {
-  // Wire timeout is configured by the main sketch; no endless wait for bytes.
-  if (Wire.requestFrom(addr, len) != len) return false;
-  for (size_t i = 0; i < len; ++i) {
-    const int b = Wire.read();
-    if (b < 0) return false;
-    bytes[i] = static_cast<uint8_t>(b);
-  }
-  return true;
+  return I2CProbe::read(addr, bytes, len);
 }
 #endif
 
@@ -135,7 +128,10 @@ inline bool readAht(double &humidity, double &temperature) {
       const uint8_t calibrate[] = {command, 0x08, 0x00};
       if (!writeI2c(AHT_I2C_ADDRESS, calibrate, sizeof(calibrate))) continue;
       delay(20);
-      if (readI2c(AHT_I2C_ADDRESS, &status, 1) && (status & 0x88) == 0x08) break;
+      if (readI2c(AHT_I2C_ADDRESS, &status, 1) && (status & 0x88) == 0x08) {
+        Serial.printf("[AHT] Init command 0x%02X accepted (family, not unique chip ID)\n", unsigned(command));
+        break;
+      }
       status = 0;
     }
     if (!(status & 0x08) || (status & 0x80)) return false;
@@ -155,39 +151,67 @@ inline bool readAht(double &humidity, double &temperature) {
 #endif
 
 #if ENABLE_MAG
-constexpr uint8_t MAG_ADDRESS = 0x1E;
-inline bool readMagRegister(uint8_t reg, uint8_t *value, size_t len) {
-  return writeI2c(MAG_ADDRESS, &reg, 1) && readI2c(MAG_ADDRESS, value, len);
-}
-inline bool initMag() {
+constexpr uint8_t HMC_ADDRESS = 0x1E, QMC_ADDRESS = 0x0D;
+inline MagKind initMag() {
   uint8_t id[3];
-  if (!readMagRegister(0x0A, id, sizeof(id)) || id[0] != 'H' || id[1] != '4' || id[2] != '3') {
-    return false; // QMC5883 is not register-compatible.
+  if (I2CProbe::reg(HMC_ADDRESS, 0x0A, id, sizeof(id)) && id[0]=='H' && id[1]=='4' && id[2]=='3') {
+    const uint8_t config[] = {0x00, 0x70, 0x20, 0x00}; // 8 samples, 15Hz, 1.3G, continuous
+    if (writeI2c(HMC_ADDRESS, config, sizeof(config))) {
+      delay(100);
+      Serial.println("[MAG] HMC5883L 0x1E H43 ready");
+      return MAG_HMC5883L;
+    }
   }
-  const uint8_t config[] = {0x00, 0x70, 0x20, 0x00}; // 8 samples, 15 Hz, gain 1.3 G, continuous
-  if (!writeI2c(MAG_ADDRESS, config, sizeof(config))) return false;
-  delay(100);
+  uint8_t qid=0;
+  if (I2CProbe::reg(QMC_ADDRESS, 0x0D, &qid, 1) && qid==0xFF) {
+    const uint8_t period[]={0x0B,0x01};
+    const uint8_t control[]={0x09,0x1D}; // datasheet: OSR512, ±8G, 200Hz, continuous
+    if (writeI2c(QMC_ADDRESS, period, sizeof(period)) && writeI2c(QMC_ADDRESS, control, sizeof(control))) {
+      delay(100);
+      Serial.println("[MAG] QMC5883L-compatible 0x0D FF ready");
+      return MAG_QMC5883L;
+    }
+  }
+  Serial.println("[MAG] No supported sensor detected");
+  return MAG_NONE;
+}
+inline int16_t be16(const uint8_t *b) { return int16_t((uint16_t(b[0]) << 8) | b[1]); }
+inline int16_t le16(const uint8_t *b) { return int16_t((uint16_t(b[1]) << 8) | b[0]); }
+inline bool readMagRaw(double &x, double &y, double &z) {
+  if (magKind == MAG_NONE) magKind=initMag();
+  if (magKind == MAG_NONE) return false;
+  uint8_t status=0, b[6];
+  const bool hmc=magKind==MAG_HMC5883L;
+  const uint8_t addr=hmc ? HMC_ADDRESS : QMC_ADDRESS;
+  if (!I2CProbe::reg(addr,hmc ? 0x09 : 0x06,&status,1)) { magKind=MAG_NONE; return false; }
+  if (hmc && (status & 2)) { // LOCK: finish reading all axes to release the lock.
+    if (!I2CProbe::reg(addr,0x03,b,sizeof(b))) magKind=MAG_NONE;
+    return false;
+  }
+  if (!(status & 1)) {
+    // QMC overflow may need the data registers drained even with DRDY clear.
+    if (!hmc && (status & 2)) I2CProbe::reg(addr,0x00,b,sizeof(b));
+    return false;
+  }
+  if (!I2CProbe::reg(addr,hmc ? 0x03 : 0x00,b,sizeof(b))) { magKind=MAG_NONE; return false; }
+  const int16_t rx=hmc ? be16(b) : le16(b);
+  const int16_t ry=hmc ? be16(b+4) : le16(b+2);
+  const int16_t rz=hmc ? be16(b+2) : le16(b+4);
+  if (hmc) {
+    if (rx < -2048 || rx > 2047 || ry < -2048 || ry > 2047 || rz < -2048 || rz > 2047) return false;
+  } else if ((status & 2) || rx == -32768 || rx == 32767 || ry == -32768 || ry == 32767 || rz == -32768 || rz == 32767) return false;
+  const double gain=hmc ? 1090.0 : 3000.0; // LSB/G from each datasheet; 1 G = 100 uT.
+  x=rx*100.0/gain; y=ry*100.0/gain; z=rz*100.0/gain;
   return true;
 }
 inline bool readMag(Snapshot &s) {
-  if (!magConfigured) magConfigured = initMag();
-  if (!magConfigured) return false;
-  uint8_t ready = 0;
-  uint8_t b[6];
-  if (!readMagRegister(0x09, &ready, 1) || !(ready & 1) ||
-      !readMagRegister(0x03, b, sizeof(b))) {
-    magConfigured = false;
-    return false;
-  }
-  const int16_t x = static_cast<int16_t>((uint16_t(b[0]) << 8) | b[1]);
-  const int16_t z = static_cast<int16_t>((uint16_t(b[2]) << 8) | b[3]);
-  const int16_t y = static_cast<int16_t>((uint16_t(b[4]) << 8) | b[5]);
-  if (x == -4096 || y == -4096 || z == -4096) return false; // overflow
-  s.x = x * 100.0 / 1100.0;
-  s.y = y * 100.0 / 1100.0;
-  s.z = z * 100.0 / 980.0;
-  // Individual zero axes are valid. Heading is undefined only when X=Y=0.
-  s.headingValid = x != 0 || y != 0;
+  double x,y,z;
+  if (!readMagRaw(x,y,z)) return false;
+  s.x=(x-MAG_OFFSET_X)*MAG_SCALE_X;
+  s.y=(y-MAG_OFFSET_Y)*MAG_SCALE_Y;
+  s.z=(z-MAG_OFFSET_Z)*MAG_SCALE_Z;
+  if (!isfinite(s.x) || !isfinite(s.y) || !isfinite(s.z)) return false;
+  s.headingValid = s.x != 0 || s.y != 0;
   if (s.headingValid) {
     s.heading = fmod(atan2(s.y, s.x) * 180.0 / 3.141592653589793 + MAG_DECLINATION_DEG, 360.0);
     if (s.heading < 0) s.heading += 360.0;
@@ -242,6 +266,13 @@ inline void tick(uint32_t now) {
     }
   }
 #endif
+#if ENABLE_MAG && ENABLE_MAG_CAL_LOG
+  if (!firstSample && now-lastSample < INTERVAL && uint32_t(now-lastMagCal) >= 200UL) {
+    lastMagCal=now;
+    double x,y,z;
+    if (readMagRaw(x,y,z)) Serial.printf("[MAGCAL] %.3f,%.3f,%.3f\n",x,y,z);
+  }
+#endif
 #if ENABLE_LORA
   if (loraSending) {
     if (!LoRa.isTransmitting()) loraSending = false;
@@ -258,6 +289,7 @@ inline void tick(uint32_t now) {
   s.sampledAt = now;
 #if ENABLE_AHT
   s.state[AHT] = readAht(s.humidity, s.ahtTemp) ? SENSOR_STATE_OK : SENSOR_STATE_UNAVAILABLE;
+  Serial.printf("[AHT] 0x%02X %s\n", unsigned(AHT_I2C_ADDRESS), stateName(s.state[AHT]));
 #endif
 #if ENABLE_VOLTAGE
   uint32_t sumMv = 0;
@@ -290,12 +322,14 @@ inline void tick(uint32_t now) {
   } else {
     s.state[GPS] = SENSOR_STATE_NO_FIX;
   }
+  Serial.printf("[GPS] %s\n",stateName(s.state[GPS]));
 #endif
 #if ENABLE_NTP
   s.state[NTP] = formatUtc(time(nullptr), s.timestamp, sizeof(s.timestamp)) ? SENSOR_STATE_OK : SENSOR_STATE_WAITING;
 #endif
 #if ENABLE_MAG
   s.state[MAG] = readMag(s) ? SENSOR_STATE_OK : SENSOR_STATE_UNAVAILABLE;
+  Serial.printf("[MAG] %s\n",stateName(s.state[MAG]));
 #endif
 #if ENABLE_LORA
   if (!loraReady) {

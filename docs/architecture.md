@@ -38,7 +38,7 @@ configurações de servidores sem endereços privados.
 |---|---:|---|
 | Geiger CAJOE — saída de impulsos | 13 | Interrupção FALLING; confirmar nível lógico compatível 3,3 V |
 | LED | não atribuído | Desativado; GPIO22 reservado para SCL |
-| I²C SDA | 21 | BMP280, AHT, HMC5883L, OLED |
+| I²C SDA | 21 | BMP/BME280, AHT, HMC/QMC5883L, OLED |
 | I²C SCL | 22 | Barramento I²C a 100 kHz |
 | OLED opcional | 21 / 22 | Mesmo I²C; endereço 0x3c |
 | GPS RX / TX | 16 / 17 | UART2 a 9600 baud; cruzar TX/RX do módulo |

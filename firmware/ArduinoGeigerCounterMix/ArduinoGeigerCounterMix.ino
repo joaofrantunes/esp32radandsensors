@@ -2,7 +2,7 @@
   Geiger counter RadiationD-v1.1 (CAJOE) + BMP280 + ESP32
   Original author: Hans Carlos Hofmann; based on Andreas Spiess
   and Mark A. Heckler (@MkHeck). MIT License.
-  Revised V1.6.0: rolling Geiger statistics and additional telemetry.
+  Revised V1.7.0: hardware detection and station profile.
 
   Keep the original credentials.h beside this sketch (never publish it).
   Default MQTT prefix matches node-red/flows.json. Change MQTT_TOPIC_PREFIX
@@ -12,6 +12,7 @@
 #include "credentials.h"
 #include "HardwareConfig.h"
 #include "GeigerStats.h"
+#include "I2CProbe.h"
 #include <WiFi.h>
 #include <PubSubClient.h>
 #if USE_I2C
@@ -19,6 +20,9 @@
 #endif
 #if ENABLE_BMP280
 #include <Adafruit_BMP280.h>
+#if ENABLE_BME280
+#include <Adafruit_BME280.h>
+#endif
 #endif
 #include <esp_task_wdt.h>
 #include <freertos/FreeRTOS.h>
@@ -49,7 +53,7 @@
 #endif
 #include "ExtraSensors.h"
 
-constexpr char VERSION[] = "V1.6.0";
+constexpr char VERSION[] = "V1.7.0";
 constexpr int INPUT_PIN = GEIGER_INPUT_PIN;
 constexpr int LED_PIN = STATUS_LED_PIN;
 constexpr int I2C_SDA = SENSOR_I2C_SDA;
@@ -100,6 +104,8 @@ uint32_t lastBmpAttemptMs = 0;
 bool alarmActive = false;
 bool bmpReady = false;
 uint8_t bmpAddress = 0x76;
+enum BarometerKind : uint8_t { BARO_NONE, BARO_BMP280, BARO_BME280 };
+BarometerKind barometerKind = BARO_NONE;
 bool measurementWdt = false;
 #if ENABLE_LCD
 bool lcdReady = false;
@@ -146,6 +152,9 @@ QueueHandle_t lcdStatusQueue = nullptr;
 
 #if ENABLE_BMP280
 Adafruit_BMP280 bmp(&Wire);  // One explicit I2C bus, not a duplicate TwoWire(0).
+#if ENABLE_BME280
+Adafruit_BME280 bme;
+#endif
 #endif
 #if ENABLE_LCD
 // OLED shares the BMP280 bus and uses the same SDA/SCL pins.
@@ -410,20 +419,36 @@ void cloudTask(void *parameter) {
 
 #if ENABLE_BMP280
 void initBmp() {
-  // BMP280 modules commonly use either address.
-  bmpAddress = 0x76;
-  bmpReady = bmp.begin(bmpAddress);
-  if (!bmpReady) {
-    bmpAddress = 0x77;
-    bmpReady = bmp.begin(bmpAddress);
+  bmpReady = false;
+  barometerKind = BARO_NONE;
+  const uint8_t addresses[] = {0x76, 0x77};
+  for (uint8_t address : addresses) {
+    uint8_t chip = 0;
+    if (!I2CProbe::reg(address, 0xD0, &chip, 1)) continue;
+    Serial.printf("[BARO] address=0x%02X chip=0x%02X\n", unsigned(address), unsigned(chip));
+    if (chip == 0x58 && bmp.begin(address)) {
+      barometerKind = BARO_BMP280;
+    }
+#if ENABLE_BME280
+    else if (chip == 0x60 && bme.begin(address, &Wire)) {
+      barometerKind = BARO_BME280;
+    }
+#else
+    else if (chip == 0x60) Serial.println("[BARO] BME280 detected; enable ENABLE_BME280 and install library");
+#endif
+    if (barometerKind != BARO_NONE) {
+      bmpAddress = address;
+      bmpReady = true;
+      break;
+    }
   }
   lastBmpAttemptMs = millis();
   if (!bmpReady) {
-    Serial.println("[BMP280] Not detected; acquisition continues");
+    Serial.println("[BARO] No supported sensor; acquisition continues");
     const EnvironmentSample invalid = {NAN, NAN, NAN, false};
     if (environmentQueue) xQueueOverwrite(environmentQueue, &invalid);
   } else {
-    Serial.println("[BMP280] Sensor ready");
+    Serial.println(barometerKind == BARO_BME280 ? "[BARO] BME280 ready" : "[BARO] BMP280 ready");
   }
 }
 
@@ -435,10 +460,19 @@ void sampleBmp(uint32_t now) {
   if (!due(now, lastBmpMs, BMP_INTERVAL_MS)) return;
   lastBmpMs = now;
   EnvironmentSample sample = {NAN, NAN, NAN, false};
-  Wire.beginTransmission(bmpAddress);
-  if (Wire.endTransmission() == 0) {
-    sample.temperature = bmp.readTemperature();
-    sample.pressure = bmp.readPressure() / 100.0f;
+  if (I2CProbe::ack(bmpAddress)) {
+    if (barometerKind == BARO_BMP280) {
+      sample.temperature = bmp.readTemperature();
+      sample.pressure = bmp.readPressure() / 100.0f;
+    }
+#if ENABLE_BME280
+    else if (barometerKind == BARO_BME280) {
+      sample.temperature = bme.readTemperature();
+      sample.pressure = bme.readPressure() / 100.0f;
+      const float rh = bme.readHumidity();
+      if (isfinite(rh) && rh >= 0 && rh <= 100) Serial.printf("[BME280] RH=%.2f %% (diagnostic)\n", rh);
+    }
+#endif
   }
   sample.valid = isfinite(sample.temperature) && isfinite(sample.pressure) &&
                  sample.temperature >= -40.0f && sample.temperature <= 85.0f &&
@@ -450,9 +484,10 @@ void sampleBmp(uint32_t now) {
     sample.valid = false;
     bmpReady = false;
     lastBmpAttemptMs = millis();
-    Serial.println("[BMP280] Invalid reading; will retry sensor");
+    barometerKind = BARO_NONE;
+    Serial.println("[BARO] Invalid reading; will retry sensor");
   } else {
-    Serial.printf("[BMP280] %.2f C, %.2f hPa, %.2f m\n",
+    Serial.printf("[BARO] %.2f C, %.2f hPa, %.2f m\n",
                   sample.temperature, sample.pressure, sample.altitude);
   }
   if (environmentQueue) xQueueOverwrite(environmentQueue, &sample);
@@ -588,6 +623,7 @@ void setup() {
 #if USE_I2C
   Wire.begin(I2C_SDA, I2C_SCL, 100000);
   Wire.setTimeOut(50);
+  I2CProbe::report();
 #endif
 #if ENABLE_LCD
   lastLcdMs = millis() - CPM_INTERVAL_MS;
