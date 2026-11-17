@@ -275,10 +275,14 @@ inline void tick(uint32_t now) {
 #endif
 #if ENABLE_LORA
   if (loraSending) {
-    if (!LoRa.isTransmitting()) loraSending = false;
+    // Public API: beginPacket() returns 0 while TX is in progress. On
+    // success it resets the empty FIFO and enters standby; no packet is sent
+    // until endPacket(). We do not call the library's private isTransmitting().
+    if (LoRa.beginPacket()) loraSending = false;
     else if (now - loraStarted >= 5000UL) {
       LoRa.end(); // only on timeout; next interval reinitializes SPI.
       loraSending = loraReady = false;
+      Serial.println("[LORA] TX timeout; will retry initialization");
     }
   }
 #endif

@@ -71,6 +71,10 @@ def main():
         subprocess.run(base + ["-DENABLE_BMP280=1", "-DENABLE_BME280=1", "-DENABLE_MAG=1",
                                str(here / "test_detection.cpp"), "-o", str(detection)], check=True)
         subprocess.run([str(detection)], check=True)
+        lora = tmp / "lora"
+        lora_flags = {**dict.fromkeys(all_flags, 0), "ENABLE_LORA": 1}
+        subprocess.run(base + flags(lora_flags) + [str(here / "test_lora.cpp"), "-o", str(lora)], check=True)
+        subprocess.run([str(lora)], check=True)
         calibration = tmp / "calibration"
         subprocess.run(base + ["-DENABLE_MAG=1", "-DMAG_OFFSET_X=10", "-DMAG_OFFSET_Y=10",
                                "-DMAG_OFFSET_Z=-3", "-DMAG_SCALE_X=2", "-DMAG_SCALE_Y=0.5",
@@ -85,6 +89,10 @@ def main():
                                           "-fsyntax-only", "-x", "c++", str(sketch)],
                                   capture_output=True)
         assert negative.returncode and b"Pin conflict" in negative.stderr
+        invalid_led = subprocess.run(base + ["-DENABLE_LED=1", "-DSTATUS_LED_PIN=-1",
+                                             "-fsyntax-only", "-x", "c++", str(sketch)],
+                                     capture_output=True)
+        assert invalid_led.returncode and b"Enable LED only with a verified free output GPIO" in invalid_led.stderr
         print("PASS: pin conflict deliberately rejected")
 
 if __name__ == "__main__":

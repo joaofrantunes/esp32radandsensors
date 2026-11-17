@@ -176,6 +176,9 @@ para ligações, tópicos MQTT e dados encaminhados para o Node-RED.
 | `Adafruit_I2CDevice.h` ou `Adafruit_SPIDevice.h: No such file or directory` | Instalar Adafruit BusIO. |
 | `TinyGPSPlus.h: No such file or directory` | Instalar TinyGPSPlus ou desativar GPS se ausente. |
 | `LoRa.h: No such file or directory` | Instalar LoRa, de Sandeep Mistry, se o módulo estiver instalado/ativado; caso contrário, definir `ENABLE_LORA 0` e verificar overrides em `credentials.h`. |
+| `LoRaClass::isTransmitting() is private` | Atualizar o firmware; a revisão corrigida usa apenas a API pública `beginPacket()` para verificar a conclusão de TX assíncrono. Não modificar a biblioteca LoRa. |
+| `Enable LED only with a verified free output GPIO` | Definir `ENABLE_LED 0` em `HardwareConfig.h` (e verificar overrides em `credentials.h`) se não houver LED externo com GPIO confirmado. `STATUS_LED_PIN=-1` é intencional; nunca escolher GPIO22 porque é SCL I²C. |
+| `Pin conflict: check HardwareConfig.h` | Rever GPIOs ativos: não ativar dois módulos no mesmo pino. Não remover as verificações de segurança. |
 | `SSD1306.h: No such file or directory` | Instalar a biblioteca OLED ThingPulse compatível ou definir `ENABLE_LCD 0`. |
 | `ThingSpeak.h: No such file or directory` | Instalar ThingSpeak, de MathWorks, ou desativar `ENABLE_THINGSPEAK`. |
 | `IFTTTWebhook.h: No such file or directory` | Manter `ENABLE_IFTTT 0`, salvo integração legada validada. |
