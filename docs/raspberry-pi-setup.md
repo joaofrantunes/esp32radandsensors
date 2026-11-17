@@ -16,17 +16,19 @@ cd esp32radandsensors
 sudo python3 -B -m pi_setup plan
 ```
 
-O plano identifica o utilizador do serviço `nodered.service`, procura um
-ficheiro `flows*.json` único na pasta `.node-red`, verifica os IDs conhecidos,
+O plano procura um único serviço ativo (`nodered.service` ou `node-red.service`),
+identifica o seu utilizador e tenta obter o caminho do flow ativo pelo log
+do processo em execução, incluindo Node-RED Projects. Verifica os IDs conhecidos,
 confirma a configuração MySQL existente e lista as tabelas a criar. Não escreve
 no sistema nem reinicia serviços. Se houver vários ficheiros ou uma instalação
 personalizada, confirmar o caminho real no log de arranque do Node-RED:
 
 ```sh
-sudo journalctl -u nodered.service -n 100 --no-pager
+sudo journalctl -u node-red.service -n 2000 --no-pager | grep -E 'Flows file|User directory|Active project'
 ```
 
-Se necessário, indicar `--flow-file /home/UTILIZADOR/.node-red/flows.json`.
+Usar o nome real do serviço; se necessário, indicar `--service NAME.service`
+e `--flow-file /caminho/real/flows.json`.
 Usar o caminho fornecido pelo log, não copiar o exemplo literalmente.
 Se o nome da base de dados for diferente de `nodered`, indicar `--database NOME`.
 
@@ -45,13 +47,19 @@ a configuração MySQL existente, incluindo os seus IDs e credenciais separadas.
 
 Se faltarem bibliotecas Node-RED, instalar no gestor de paletas, ou repetir
 com `--install-palettes` para instalar somente as faltantes pelo npm como o
-utilizador do serviço (requer rede). As alterações npm não são desfeitas
+utilizador do serviço (requer rede). A verificação procura dependências no
+diretório do projeto ativo e no diretório do runtime. Se o serviço correr como
+root, a instalação automática npm é recusada; verificar as paletas manualmente.
+As alterações npm não são desfeitas
 automaticamente em caso de falha; os manifests anteriores ficam no backup.
 
 ## Autenticação MySQL
 
 A instalação local pode permitir autenticação por socket do utilizador root,
-por exemplo `sudo mariadb`. Se for necessária outra conta, criar um ficheiro
+por exemplo `sudo mariadb --protocol=SOCKET`. Sem `--mysql-options`, o instalador
+usa explicitamente o socket Unix para localhost/127.0.0.1/::1 e verifica se a
+porta reportada pelo servidor corresponde à configuração do Node-RED. O broker
+e a ligação da aplicação à base não são alterados. Se for necessária outra conta, criar um ficheiro
 privado de opções MySQL, com as credenciais de uma conta autorizada a ler,
 fazer backup e criar as tabelas. Não usar a palavra-passe na linha de comandos.
 
@@ -74,13 +82,14 @@ Node-RED. Não usar uma conta administrativa para os INSERT de produção.
 2. Para temporariamente o Node-RED (pequena janela de indisponibilidade).
 3. Faz cópia do flow, ficheiro de credenciais, configuração e backup SQL em
    `/var/backups/esp32radandsensors/<data-UTC>`; acesso restrito ao administrador.
+   Inclui configurações e manifests do runtime separadamente do projeto ativo.
 4. Cria apenas ESP32GEIGERSTATS, ESP32DEVICE e ESP32EXTRA se ausentes.
 5. Atualiza o flow por substituição atómica, mantendo os IDs e as configurações existentes.
 6. Reinicia Node-RED; se falhar, tenta repor o flow original. As tabelas novas
    não são apagadas e o backup SQL não é importado automaticamente.
 7. Numa segunda execução sem alterações, não reinicia desnecessariamente.
 
-Se ocorrer uma falha, consultar o backup e o estado de `systemctl status nodered`.
+Se ocorrer uma falha, consultar o backup e o estado do serviço identificado pelo plano.
 O instalador confirma que o serviço ficou ativo, não que as medições reais já
 chegaram ao dashboard. Confirmar MQTT, dashboard e INSERTs; só depois carregar
 o firmware V1.7 se ainda não estiver instalado. Nunca publicar os backups,

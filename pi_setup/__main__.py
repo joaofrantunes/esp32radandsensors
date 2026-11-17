@@ -122,14 +122,28 @@ def db_args(args, dump=False):
         if not p.is_file() or stat.S_IMODE(p.stat().st_mode) & 0o077:
             raise SetupError('MySQL option file must be private (chmod 600)')
         command.append('--defaults-extra-file=' + str(p))
-    command.extend(['--host', args.mysql_host, '--port', str(args.mysql_port)])
+    if use_local_socket(args):
+        # The Node-RED application uses TCP, but an administrative account on
+        # Debian/MariaDB often uses Unix-socket authentication (e.g. sudo).
+        # Never pass --port here: it can select TCP instead of the socket.
+        command.extend(['--protocol=SOCKET', '--host=localhost'])
+    else:
+        command.extend(['--host', args.mysql_host, '--port', str(args.mysql_port)])
     return command
+
+
+def use_local_socket(args):
+    return not args.mysql_options and args.mysql_host in ('localhost', '127.0.0.1', '::1')
 
 
 def check_database(args, statements):
     if not re.fullmatch(r'[A-Za-z0-9_]+', args.database):
         raise SetupError('Database name must contain only letters, digits and underscores')
     command = db_args(args) + ['--batch', '--skip-column-names', '--database', args.database]
+    if use_local_socket(args):
+        port = run(command, data=b'SELECT @@port;').strip()
+        if port != str(args.mysql_port):
+            raise SetupError('Local socket server port differs from Node-RED database endpoint; use --mysql-options')
     # Check all existing migration targets contain the expected columns before applying.
     existing = set(run(command, data=b'SHOW TABLES;').splitlines())
     for name, ddl in statements.items():
@@ -145,33 +159,66 @@ def check_database(args, statements):
 
 
 def discover_flow(args):
-    service = args.service
-    if not re.fullmatch(r'[A-Za-z0-9_.@-]+\.service', service) or service.startswith('-'):
-        raise SetupError('Invalid systemd service name')
-    user = run(['systemctl', 'show', service, '--property=User', '--value']).strip()
+    services = [args.service] if args.service else ['nodered.service', 'node-red.service']
+    active = []
+    for service in services:
+        if not re.fullmatch(r'[A-Za-z0-9_.@-]+\.service', service) or service.startswith('-'):
+            raise SetupError('Invalid systemd service name')
+        try:
+            info = dict(line.split('=', 1) for line in run(['systemctl', 'show', service,
+                '--property=LoadState,ActiveState,User,MainPID']).splitlines() if '=' in line)
+        except SetupError:
+            if args.service:
+                raise
+            continue
+        if info.get('LoadState') == 'loaded' and info.get('ActiveState') == 'active':
+            active.append((service, info))
+    if len(active) != 1:
+        raise SetupError('Expected one active Node-RED service; specify --service NAME.service')
+    args.service, info = active[0]
+    user = info.get('User', '')
     if not user:
         raise SetupError('Cannot identify Node-RED service user; custom/Docker installations need manual setup')
     home = Path(pwd.getpwnam(user).pw_dir)
+    pid = info.get('MainPID', '')
+    if not pid.isdigit() or int(pid) <= 0:
+        raise SetupError('Cannot identify active Node-RED process')
+    # Restrict evidence to the active service process in the current boot,
+    # not a previous project or another instance. Read before choosing a file.
+    try:
+        logs = run(['journalctl', '-u', args.service, '-b', '--no-pager', '_PID=' + pid])
+    except SetupError:
+        logs = ''
+    logged = re.findall(r'Flows file\s*:\s*(/[^\r\n]+\.json)[ \t]*$', logs, re.M)
+    runtime_dirs = re.findall(r'User directory\s*:\s*(/[^\r\n]+)$', logs, re.M)
+    settings_paths = re.findall(r'Settings file\s*:\s*(/[^\r\n]+)$', logs, re.M)
+    runtime_dir = Path(runtime_dirs[-1].strip() if runtime_dirs else home / '.node-red').resolve()
+    settings = Path(settings_paths[-1].strip()).resolve() if settings_paths else runtime_dir / 'settings.js'
     if args.flow_file:
         path = Path(args.flow_file).expanduser().resolve(strict=True)
+    elif logged:
+        path = Path(logged[-1].strip()).resolve(strict=True)
     else:
-        candidates = [p for p in (home / '.node-red').glob('flows*.json') if not p.name.endswith('_cred.json')]
+        candidates = [p for p in runtime_dir.glob('flows*.json')
+                      if not re.search(r'cred|backup', p.name, re.I)]
         if len(candidates) != 1:
             raise SetupError('Ambiguous or missing flow file; supply --flow-file /absolute/path/flows.json')
         path = candidates[0].resolve(strict=True)
     if not path.is_file() or path.suffix != '.json' or path.stat().st_uid != pwd.getpwnam(user).pw_uid:
         raise SetupError('Flow file ownership/format does not match Node-RED service user')
-    # Confirm the runtime's own path when a recent startup record is available.
-    try:
-        logs = run(['journalctl', '-u', service, '--no-pager', '-n', '2000'])
-    except SetupError:
-        logs = ''
-    logged = re.findall(r'Flows file\s*:\s*(/[^\r\n]+\.json)\s*$', logs, re.M)
-    if logged and Path(logged[-1]).resolve() != path:
+    if logged and Path(logged[-1].strip()).resolve() != path:
         raise SetupError('Selected flow path differs from latest Node-RED startup log')
     if not logged and args.action != 'plan' and not args.flow_file:
         raise SetupError('Cannot confirm active flow file automatically; pass --flow-file after checking Node-RED startup log')
-    return path, user
+    if not runtime_dir.is_dir() or runtime_dir.stat().st_uid != pwd.getpwnam(user).pw_uid:
+        raise SetupError('Cannot verify Node-RED runtime directory ownership')
+    return path, user, runtime_dir, settings
+
+
+def missing_palettes(flow_path, runtime_dir):
+    # Node-RED Projects and the runtime can each contain dependencies.
+    return [p for p in PALETTES if not any((d / 'node_modules' / p / 'package.json').is_file()
+                                          for d in (flow_path.parent, runtime_dir))]
 
 
 def digest(data):
@@ -204,7 +251,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('action', choices=('plan', 'update', 'install'))
     parser.add_argument('--flow-file', help='Exact active Node-RED flow path (required if ambiguous)')
-    parser.add_argument('--service', default='nodered.service')
+    parser.add_argument('--service', help='Override automatic active nodered.service/node-red.service detection')
     parser.add_argument('--database', default='nodered')
     parser.add_argument('--mysql-options', help='Private MySQL [client] option file, or use local socket auth')
     parser.add_argument('--install-palettes', action='store_true', help='Install missing palette packages during apply (requires npm/network)')
@@ -213,7 +260,7 @@ def main():
     args = parser.parse_args()
     if args.action != 'plan' and (not args.yes or os.geteuid() != 0):
         raise SetupError('Use sudo and --yes only after reviewing plan')
-    flow_path, user = discover_flow(args)
+    flow_path, user, runtime_dir, settings = discover_flow(args)
     desired = read_flow(ROOT / 'node-red/flows.json')
     original = flow_path.read_bytes()
     current = read_flow(flow_path)
@@ -238,9 +285,11 @@ def main():
     if args.mysql_host not in ('localhost', '127.0.0.1', '::1') and not args.mysql_options:
         raise SetupError('Remote database requires a private --mysql-options file for backup and migration')
     command, existing = check_database(args, statements)
-    missing = [p for p in PALETTES if not (flow_path.parent / 'node_modules' / p / 'package.json').is_file()]
+    missing = missing_palettes(flow_path, runtime_dir)
+    print(f'Service: {args.service}; runtime directory: {runtime_dir}')
     print(f'Flow file: {flow_path} (user {user})')
     print(f'Mode: {"new project" if fresh else "update"}; nodes {len(current)} -> {len(merged)}; database {args.database}')
+    print('Database administration: ' + ('local Unix socket' if use_local_socket(args) else 'configured client connection'))
     print('Tables to create: ' + (', '.join(t for t in statements if t not in existing) or 'none'))
     if missing:
         print('Palette packages not detected locally: ' + ', '.join(missing))
@@ -251,6 +300,8 @@ def main():
     if missing and not args.install_palettes:
         raise SetupError('Palette verification failed; install required libraries before applying')
     if missing:
+        if pwd.getpwnam(user).pw_uid == 0:
+            raise SetupError('Automatic npm installation refused for root service; verify/install palettes manually')
         executable('npm'); executable('runuser')
     if run(['systemctl', 'is-active', args.service]).strip() != 'active':
         raise SetupError('Node-RED must be active before upgrade')
@@ -274,6 +325,14 @@ def main():
                        flow_path.parent / 'package.json', flow_path.parent / 'package-lock.json']:
             if source.is_file():
                 backup_file(source, backup / source.name)
+        # Projects use separate runtime settings, registries and dependency manifests.
+        runtime_backup = backup / 'runtime'
+        runtime_backup.mkdir(mode=0o700)
+        for source in dict.fromkeys([settings, runtime_dir / '.config.runtime.json',
+                                     runtime_dir / '.config.projects.json', runtime_dir / '.config.nodes.json',
+                                     runtime_dir / 'package.json', runtime_dir / 'package-lock.json']):
+            if source.is_file():
+                backup_file(source, runtime_backup / source.name)
         with (backup / 'database.sql').open('xb') as out:
             os.fchmod(out.fileno(), 0o600)
             run(db_args(args, dump=True) + ['--single-transaction', '--databases', args.database], output=out)
@@ -283,7 +342,7 @@ def main():
         if missing:
             # Explicit opt-in; npm executes as the service user, never root.
             run([executable('runuser'), '-u', user, '--', executable('npm'), 'install', '--prefix', str(flow_path.parent), '--no-fund', '--no-audit', *missing])
-            if any(not (flow_path.parent / 'node_modules' / p / 'package.json').is_file() for p in missing):
+            if missing_palettes(flow_path, runtime_dir):
                 raise SetupError('Palette installation verification failed')
         run(command, data=('\n'.join(statements.values())).encode())
         _, after = check_database(args, statements)

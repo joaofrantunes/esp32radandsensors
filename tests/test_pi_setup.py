@@ -1,6 +1,10 @@
 import json
+import os
+import pwd
 from pathlib import Path
 import tempfile
+from argparse import Namespace
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -54,6 +58,17 @@ class SetupTests(unittest.TestCase):
             self.assertTrue(statement.startswith('CREATE TABLE IF NOT EXISTS'))
             self.assertNotRegex(statement,r'\b(DROP|DELETE|ALTER|TRUNCATE)\b')
 
+    def test_local_socket_and_endpoint_validation(self):
+        args=Namespace(mysql_options=None,mysql_host='127.0.0.1',mysql_port=3306,database='nodered')
+        with patch.object(cli,'executable',return_value='mariadb'):
+            self.assertEqual(cli.db_args(args),['mariadb','--protocol=SOCKET','--host=localhost'])
+            with patch.object(cli,'run',return_value='3307\n'):
+                with self.assertRaisesRegex(SetupError,'port differs'): cli.check_database(args,{})
+            with patch.object(cli,'run',side_effect=['3306\n','ESP32EXTRA\n']):
+                self.assertEqual(cli.check_database(args,{})[1],{'ESP32EXTRA'})
+            args.mysql_host='192.0.2.1'
+            self.assertEqual(cli.db_args(args),['mariadb','--host','192.0.2.1','--port','3306'])
+
     def test_atomic_file_and_invalid_ids(self):
         with tempfile.TemporaryDirectory() as tmp:
             p=Path(tmp)/'flows.json'; p.write_text('[]'); metadata=p.stat()
@@ -62,9 +77,49 @@ class SetupTests(unittest.TestCase):
             p.write_text('[{"id":"one"},{"id":"one"}]')
             with self.assertRaises(SetupError): read_flow(p)
 
+    def test_project_runtime_detection_and_palettes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            runtime=Path(tmp)/'.node-red'; project=runtime/'projects'/'NodeRed_IoT'
+            project.mkdir(parents=True); path=project/'flows.json'; path.write_text('[]')
+            (runtime/'flows.json').write_text('[]'); (runtime/'flows_backup.json').write_text('[]')
+            user=pwd.getpwuid(os.getuid()).pw_name
+            logs=f'Settings file : {runtime}/settings.js\nUser directory : {runtime}\nActive project : NodeRed_IoT\nFlows file : {path}\n'
+            def fake_run(args):
+                if args[0]=='journalctl':
+                    self.assertIn('_PID=795',args); return logs
+                if args[2]=='node-red.service':
+                    return f'LoadState=loaded\nActiveState=active\nUser={user}\nMainPID=795\n'
+                return 'LoadState=not-found\nActiveState=inactive\nUser=\nMainPID=0\n'
+            with patch.object(cli,'run',side_effect=fake_run):
+                args=Namespace(service=None,flow_file=None,action='plan')
+                self.assertEqual(cli.discover_flow(args),(path,user,runtime,runtime/'settings.js'))
+                self.assertEqual(args.service,'node-red.service')
+                args.flow_file=str(runtime/'flows.json')
+                with self.assertRaisesRegex(SetupError,'differs'): cli.discover_flow(args)
+            for directory,p in zip((project,runtime),cli.PALETTES):
+                package=directory/'node_modules'/p/'package.json'; package.parent.mkdir(parents=True); package.write_text('{}')
+            self.assertEqual(cli.missing_palettes(path,runtime),[])
+
+    def test_reject_ambiguous_services(self):
+        with patch.object(cli,'run',return_value='LoadState=loaded\nActiveState=active\nUser=root\nMainPID=795\n'):
+            with self.assertRaisesRegex(SetupError,'one active'): cli.discover_flow(Namespace(service=None))
+
+    def test_root_npm_install_refused_before_mutations(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            directory=Path(tmp); path=directory/'flows.json'; path.write_text(json.dumps(self.original))
+            with patch.object(cli,'discover_flow',return_value=(path,'root',directory,directory/'settings.js')), \
+                 patch.object(cli,'check_database',return_value=(['db'],set())), \
+                 patch.object(cli.pwd,'getpwnam',return_value=SimpleNamespace(pw_uid=0)), \
+                 patch.object(cli.os,'geteuid',return_value=0), \
+                 patch.object(cli,'run') as execute, \
+                 patch.object(cli.sys,'argv',['pi_setup','update','--service','node-red.service','--yes','--install-palettes']):
+                with self.assertRaisesRegex(SetupError,'refused for root'): cli.main()
+                execute.assert_not_called()
+
     def test_plan_and_service_failure_rollback(self):
         with tempfile.TemporaryDirectory() as tmp:
-            directory=Path(tmp); path=directory/'flows.json'; credential=directory/'flows_cred.json'
+            directory=Path(tmp); runtime=directory/'runtime'; runtime.mkdir()
+            path=directory/'flows.json'; credential=directory/'flows_cred.json'
             original=json.dumps(self.original).encode(); path.write_bytes(original); credential.write_bytes(b'private')
             for p in cli.PALETTES:
                 package=directory/'node_modules'/p/'package.json'; package.parent.mkdir(parents=True); package.write_text('{}')
@@ -79,19 +134,22 @@ class SetupTests(unittest.TestCase):
                     starts += 1
                     if starts==1: raise SetupError('mock service start failed')
                 return ''
-            with patch.object(cli,'discover_flow',return_value=(path,'pi')), \
+            with patch.object(cli,'discover_flow',return_value=(path,'pi',runtime,runtime/'settings.js')), \
                  patch.object(cli,'check_database',side_effect=lambda *a: (['db'],set(created))), \
                  patch.object(cli,'db_args',return_value=['dump']), \
                  patch.object(cli,'run',side_effect=fake_run), \
                  patch.object(cli.os,'geteuid',return_value=0):
-                with patch.object(cli.sys,'argv',['pi_setup','plan']): cli.main()
+                (runtime/'settings.js').write_text('private settings')
+                with patch.object(cli.sys,'argv',['pi_setup','plan','--service','node-red.service']): cli.main()
                 self.assertEqual(commands,[]); self.assertEqual(path.read_bytes(),original)
-                with patch.object(cli.sys,'argv',['pi_setup','update','--yes','--backup-dir',str(directory/'backup')]):
+                with patch.object(cli.sys,'argv',['pi_setup','update','--service','node-red.service','--yes','--backup-dir',str(directory/'backup')]):
                     with self.assertRaises(SetupError): cli.main()
                 self.assertEqual(path.read_bytes(),original)
                 self.assertEqual(credential.read_bytes(),b'private')
                 self.assertEqual(starts,2)
                 self.assertEqual(created,set(TABLES))
+                backups=list((directory/'backup').glob('*/runtime/settings.js'))
+                self.assertEqual(len(backups),1); self.assertEqual(backups[0].read_text(),'private settings')
 
 
 if __name__=='__main__': unittest.main()
