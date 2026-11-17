@@ -2,7 +2,7 @@
   Geiger counter RadiationD-v1.1 (CAJOE) + BMP280 + ESP32
   Original author: Hans Carlos Hofmann; based on Andreas Spiess
   and Mark A. Heckler (@MkHeck). MIT License.
-  Revised V1.4.1: configurable hardware, optional OLED and module status.
+  Revised V1.5.0: restored optional v6 sensors, safe acquisition and MQTT status.
 
   Keep the original credentials.h beside this sketch (never publish it).
   Default MQTT prefix matches node-red/flows.json. Change MQTT_TOPIC_PREFIX
@@ -13,7 +13,7 @@
 #include "HardwareConfig.h"
 #include <WiFi.h>
 #include <PubSubClient.h>
-#if ENABLE_BMP280 || ENABLE_LCD
+#if USE_I2C
 #include <Wire.h>
 #endif
 #if ENABLE_BMP280
@@ -46,8 +46,9 @@
 #ifndef MQTT_PASSWORD
 #define MQTT_PASSWORD ""
 #endif
+#include "ExtraSensors.h"
 
-constexpr char VERSION[] = "V1.4.1";
+constexpr char VERSION[] = "V1.5.0";
 constexpr int INPUT_PIN = GEIGER_INPUT_PIN;
 constexpr int LED_PIN = STATUS_LED_PIN;
 constexpr int I2C_SDA = SENSOR_I2C_SDA;
@@ -247,9 +248,12 @@ void mqttTask(void *parameter) {
   bool haveCpm = false;
   bool lcdPending = true;
   bool lcdAvailable = false;
+  ExtraSensors::Publisher extra;
+  bool ntpStarted = false;
 
   for (;;) {
     const uint32_t now = millis();
+    extra.receive();
     if (cpmQueue && xQueueReceive(cpmQueue, &cpm, 0) == pdTRUE) {
       cpmPending = haveCpm = true;
     }
@@ -270,12 +274,17 @@ void mqttTask(void *parameter) {
         Serial.println("[WiFi] Reconnecting");
       }
     } else {
+      if (!ntpStarted) {
+        ExtraSensors::startNtp();
+        ntpStarted = true;
+      }
       if (!mqttClient.connected() && due(now, lastMqttAttempt, MQTT_RETRY_MS)) {
         // A network call can block this task, never the acquisition loop.
         if (connectMqtt(clientId)) {
           cpmPending = haveCpm;
           envPending = true; // Refresh status even when BMP280 is disabled.
           lcdPending = true;
+          extra.statusRefresh = true;
         }
         lastMqttAttempt = millis();
       }
@@ -312,6 +321,7 @@ void mqttTask(void *parameter) {
           ok = publishNumber(TOPIC_RAD, hour.rate);
           if (ok) xQueueReceive(hourlyQueue, &hour, 0);
         }
+        if (ok) ok = extra.publish(mqttClient, millis());
         if (!ok) {
           Serial.println("[MQTT] Publish failed; retry after reconnection");
           mqttTransport.stop();
@@ -434,6 +444,7 @@ void sampleRadiation(uint32_t now) {
     cpmBaseline = pulses;
     lastCpmMs = now;
     const double cpm = normalizedRate(delta, elapsed, 60000.0);
+    ExtraSensors::setCpm(cpm);
     // Alarm starts armed, including when the first sample is already high.
     if (!alarmActive && cpm >= ALARM_HIGH_CPM) {
       alarmActive = true;
@@ -543,8 +554,8 @@ void setup() {
     Serial.println("[WDT] Task watchdog unavailable in this core configuration");
   }
 
-  // Keep original wiring. GPIO0 is a boot-strapping pin on classic ESP32.
-#if ENABLE_BMP280 || ENABLE_LCD
+  // Shared v6 I2C bus: GPIO21/22, one Wire instance.
+#if USE_I2C
   Wire.begin(I2C_SDA, I2C_SCL, 100000);
   Wire.setTimeOut(50);
 #endif
@@ -555,6 +566,7 @@ void setup() {
   lastBmpMs = millis() - BMP_INTERVAL_MS; // First sample as soon as ready.
   initBmp();
 #endif
+  ExtraSensors::begin();
 
   if ((ENABLE_GEIGER && (!cpmQueue || !hourlyQueue)) ||
       (ENABLE_BMP280 && !environmentQueue) ||
@@ -590,5 +602,6 @@ void loop() {
 #if ENABLE_LCD
   sampleLcd(millis());
 #endif
+  ExtraSensors::tick(millis());
   delay(10);
 }

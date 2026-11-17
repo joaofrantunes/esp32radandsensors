@@ -1636,7 +1636,7 @@
     "type": "ui_group",
     "name": "Main",
     "tab": "e7c46d5e.a1283",
-    "order": 2,
+    "order": 3,
     "disp": true,
     "width": "6",
     "collapse": false
@@ -2029,6 +2029,320 @@
     "className": "",
     "x": 1010,
     "y": 2500,
+    "wires": []
+  },
+  {
+    "id": "c0ffee0000001500",
+    "type": "ui_group",
+    "name": "Sensores adicionais",
+    "tab": "e7c46d5e.a1283",
+    "order": 2,
+    "disp": true,
+    "width": "6",
+    "collapse": false
+  },
+  {
+    "id": "c0ffee00000015a1",
+    "type": "mqtt in",
+    "z": "51485792b6dd2f3b",
+    "name": "AHT10/AHT20",
+    "topic": "esp32/aht/status",
+    "qos": "1",
+    "datatype": "utf8",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 740,
+    "y": 2645,
+    "wires": [
+      [
+        "c0ffee00000015b1"
+      ]
+    ]
+  },
+  {
+    "id": "c0ffee00000015b1",
+    "type": "ui_text",
+    "z": "51485792b6dd2f3b",
+    "group": "c0ffee0000001500",
+    "order": 1,
+    "width": 6,
+    "height": 1,
+    "name": "AHT10/AHT20",
+    "label": "AHT10/AHT20",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "className": "",
+    "x": 1010,
+    "y": 2645,
+    "wires": []
+  },
+  {
+    "id": "c0ffee00000015a2",
+    "type": "mqtt in",
+    "z": "51485792b6dd2f3b",
+    "name": "ADC tensão",
+    "topic": "esp32/voltage/status",
+    "qos": "1",
+    "datatype": "utf8",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 740,
+    "y": 2690,
+    "wires": [
+      [
+        "c0ffee00000015b2"
+      ]
+    ]
+  },
+  {
+    "id": "c0ffee00000015b2",
+    "type": "ui_text",
+    "z": "51485792b6dd2f3b",
+    "group": "c0ffee0000001500",
+    "order": 2,
+    "width": 6,
+    "height": 1,
+    "name": "ADC tensão",
+    "label": "ADC tensão",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "className": "",
+    "x": 1010,
+    "y": 2690,
+    "wires": []
+  },
+  {
+    "id": "c0ffee00000015a3",
+    "type": "mqtt in",
+    "z": "51485792b6dd2f3b",
+    "name": "GPS",
+    "topic": "esp32/gps/status",
+    "qos": "1",
+    "datatype": "utf8",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 740,
+    "y": 2735,
+    "wires": [
+      [
+        "c0ffee00000015b3"
+      ]
+    ]
+  },
+  {
+    "id": "c0ffee00000015b3",
+    "type": "ui_text",
+    "z": "51485792b6dd2f3b",
+    "group": "c0ffee0000001500",
+    "order": 3,
+    "width": 6,
+    "height": 1,
+    "name": "GPS",
+    "label": "GPS",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "className": "",
+    "x": 1010,
+    "y": 2735,
+    "wires": []
+  },
+  {
+    "id": "c0ffee00000015a4",
+    "type": "mqtt in",
+    "z": "51485792b6dd2f3b",
+    "name": "NTP",
+    "topic": "esp32/ntp/status",
+    "qos": "1",
+    "datatype": "utf8",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 740,
+    "y": 2780,
+    "wires": [
+      [
+        "c0ffee00000015b4"
+      ]
+    ]
+  },
+  {
+    "id": "c0ffee00000015b4",
+    "type": "ui_text",
+    "z": "51485792b6dd2f3b",
+    "group": "c0ffee0000001500",
+    "order": 4,
+    "width": 6,
+    "height": 1,
+    "name": "NTP",
+    "label": "NTP",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "className": "",
+    "x": 1010,
+    "y": 2780,
+    "wires": []
+  },
+  {
+    "id": "c0ffee00000015a5",
+    "type": "mqtt in",
+    "z": "51485792b6dd2f3b",
+    "name": "HMC5883L",
+    "topic": "esp32/mag/status",
+    "qos": "1",
+    "datatype": "utf8",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 740,
+    "y": 2825,
+    "wires": [
+      [
+        "c0ffee00000015b5"
+      ]
+    ]
+  },
+  {
+    "id": "c0ffee00000015b5",
+    "type": "ui_text",
+    "z": "51485792b6dd2f3b",
+    "group": "c0ffee0000001500",
+    "order": 5,
+    "width": 6,
+    "height": 1,
+    "name": "HMC5883L",
+    "label": "HMC5883L",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "className": "",
+    "x": 1010,
+    "y": 2825,
+    "wires": []
+  },
+  {
+    "id": "c0ffee00000015a6",
+    "type": "mqtt in",
+    "z": "51485792b6dd2f3b",
+    "name": "LoRa",
+    "topic": "esp32/lora/status",
+    "qos": "1",
+    "datatype": "utf8",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 740,
+    "y": 2870,
+    "wires": [
+      [
+        "c0ffee00000015b6"
+      ]
+    ]
+  },
+  {
+    "id": "c0ffee00000015b6",
+    "type": "ui_text",
+    "z": "51485792b6dd2f3b",
+    "group": "c0ffee0000001500",
+    "order": 6,
+    "width": 6,
+    "height": 1,
+    "name": "LoRa",
+    "label": "LoRa",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "className": "",
+    "x": 1010,
+    "y": 2870,
+    "wires": []
+  },
+  {
+    "id": "c0ffee00000015a7",
+    "type": "mqtt in",
+    "z": "51485792b6dd2f3b",
+    "name": "Hall",
+    "topic": "esp32/hall/status",
+    "qos": "1",
+    "datatype": "utf8",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 740,
+    "y": 2915,
+    "wires": [
+      [
+        "c0ffee00000015b7"
+      ]
+    ]
+  },
+  {
+    "id": "c0ffee00000015b7",
+    "type": "ui_text",
+    "z": "51485792b6dd2f3b",
+    "group": "c0ffee0000001500",
+    "order": 7,
+    "width": 6,
+    "height": 1,
+    "name": "Hall",
+    "label": "Hall",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "className": "",
+    "x": 1010,
+    "y": 2915,
+    "wires": []
+  },
+  {
+    "id": "c0ffee00000015a8",
+    "type": "mqtt in",
+    "z": "51485792b6dd2f3b",
+    "name": "Temperatura interna",
+    "topic": "esp32/inttemp/status",
+    "qos": "1",
+    "datatype": "utf8",
+    "broker": "10e78a89.5b4fd5",
+    "nl": false,
+    "rap": true,
+    "rh": 0,
+    "inputs": 0,
+    "x": 740,
+    "y": 2960,
+    "wires": [
+      [
+        "c0ffee00000015b8"
+      ]
+    ]
+  },
+  {
+    "id": "c0ffee00000015b8",
+    "type": "ui_text",
+    "z": "51485792b6dd2f3b",
+    "group": "c0ffee0000001500",
+    "order": 8,
+    "width": 6,
+    "height": 1,
+    "name": "Temperatura interna",
+    "label": "Temperatura interna",
+    "format": "{{msg.payload}}",
+    "layout": "row-spread",
+    "className": "",
+    "x": 1010,
+    "y": 2960,
     "wires": []
   }
 ]

@@ -9,7 +9,8 @@ histórico em MySQL.
 ```mermaid
 flowchart LR
     G["Geiger CAJOE"] --> E["ESP32"]
-    B["BMP280"] --> E
+    B["BMP280 / AHT / GPS"] --> E
+    X["ADC / HMC5883 / diagnósticos"] -.-> E
     E -->|"Wi-Fi / MQTT"| M["Broker MQTT"]
     S["Outros publicadores opcionais"] -.-> M
     M --> N["Node-RED"]
@@ -18,7 +19,7 @@ flowchart LR
     V --> Q["INSERT parametrizado"]
     Q --> DB[("MySQL")]
     DB --> H["Consultas históricas"]
-    E -.-> C["IFTTT / ThingSpeak opcionais"]
+    E -.-> C["IFTTT / ThingSpeak / LoRa opcionais"]
 ```
 
 O MQTT desacopla a estação de aquisição do servidor. O Node-RED recebe,
@@ -30,14 +31,16 @@ O fluxo não recarrega automaticamente o histórico MySQL no dashboard.
 
 | Caminho | Finalidade |
 |---|---|
-| [firmware/ArduinoGeigerCounterMix/](firmware/ArduinoGeigerCounterMix/) | Firmware ESP32 V1.4.1 (Geiger e BMP280) |
+| [firmware/ArduinoGeigerCounterMix/](firmware/ArduinoGeigerCounterMix/) | Firmware ESP32 V1.5.0 (recuperação da versão esp32_v6) |
 | [HardwareConfig.h](firmware/ArduinoGeigerCounterMix/HardwareConfig.h) | Seleção dos módulos instalados, ecrã e GPIOs |
 | [credentials.example.h](firmware/ArduinoGeigerCounterMix/credentials.example.h) | Modelo de configuração, sem credenciais reais |
-| [node-red/flows.json](node-red/flows.json) | 17 entradas de medições, 16 gráficos, 6 indicadores de estado e persistência |
+| [ExtraSensors.h](firmware/ArduinoGeigerCounterMix/ExtraSensors.h) | Aquisição e publicação dos módulos adicionais |
+| [node-red/flows.json](node-red/flows.json) | 17 entradas de medições, 16 gráficos, 14 indicadores de estado e persistência |
 | [database/schema.sql](database/schema.sql) | Criação da base de dados e das 17 tabelas |
 | [database/queries.sql](database/queries.sql) | Exemplos de consultas históricas |
 | [docs/architecture.md](docs/architecture.md) | Ligações, tópicos, tabelas e frequência |
 | [tests/validate-flow.js](tests/validate-flow.js) | Testes locais do fluxo e do contrato SQL |
+| [tests/firmware/](tests/firmware/) | Testes do firmware com interfaces simuladas (sem ESP32) |
 
 ## Instalação
 
@@ -45,14 +48,17 @@ O fluxo não recarrega automaticamente o histórico MySQL no dashboard.
 
 1. Abrir `firmware/ArduinoGeigerCounterMix/ArduinoGeigerCounterMix.ino` no Arduino IDE.
 2. Instalar o suporte de placas Arduino-ESP32 e as bibliotecas PubSubClient,
-   Adafruit BMP280 e Adafruit BusIO/Unified Sensor. SSD1306 (ThingPulse),
-   IFTTTWebhook e ThingSpeak são opcionais.
+   Adafruit BMP280 e Adafruit BusIO/Unified Sensor. Instalar TinyGPSPlus
+   quando GPS está ativado. SSD1306 (ThingPulse), LoRa (Sandeep Mistry),
+   IFTTTWebhook e ThingSpeak são opcionais. AHT10/AHT20 e HMC5883L
+   utilizam o driver I²C integrado, sem biblioteca adicional.
 3. Copiar `credentials.example.h` para `credentials.h`. Preencher o SSID,
    a palavra-passe, endereço e porta do broker MQTT. Ativar serviços externos
    apenas se forem configurados no HardwareConfig.h.
 4. Confirmar o modelo de placa, as ligações e a tensão dos sinais antes de
-   compilar e carregar. O exemplo usa GPIO16 para Geiger, GPIO22 para LED,
-   GPIO0 (SDA) e GPIO4 (SCL) para BMP280.
+   compilar e carregar. A V1.5.0 segue a versão esp32_v6: GPIO13 para
+   Geiger, GPIO21/22 para I²C, GPIO16/17 para GPS, GPIO34 para ADC.
+   O LED está desativado porque GPIO22 é agora SCL.
 5. Abrir o monitor série a 115200 baud.
 
 ### Configuração modular do hardware
@@ -65,14 +71,22 @@ e recompilar/carregar o firmware. Cada opção aceita 1 (ativado) ou 0 (desativa
 | ENABLE_GEIGER | 1 | Sem interrupção Geiger, CPM, CPH nem alertas de radiação |
 | ENABLE_BMP280 | 1 | Sem acesso ao sensor nem publicação de temperatura, pressão e altitude |
 | ENABLE_LCD | 0 | Sem inicialização nem biblioteca OLED |
-| ENABLE_LED | 1 | Sem configurar o GPIO nem subscrever comandos do LED |
+| ENABLE_LED | 0 | Sem configurar o GPIO nem subscrever comandos do LED |
+| ENABLE_AHT | 1 | Sem humidade/temperatura AHT10/AHT20 |
+| ENABLE_GPS | 1 | Sem UART GPS nem coordenadas |
+| ENABLE_NTP | 1 | Sem publicação do timestamp UTC sincronizado |
+| ENABLE_VOLTAGE | 0 | Sem ADC (requer divisor e calibração confirmados) |
+| ENABLE_MAG | 0 | Sem magnetómetro HMC5883L (não QMC5883) |
+| ENABLE_LORA | 0 | Sem emissor LoRa (requer frequência, antena e recetor confirmados) |
+| ENABLE_HALL | 0 | Sem Hall interno (apenas ESP32 clássico + core 2.x) |
+| ENABLE_INTTEMP | 0 | Sem diagnóstico da temperatura interna |
 | ENABLE_IFTTT | 0 | Sem alertas HTTP |
 | ENABLE_THINGSPEAK | 0 | Sem publicação ThingSpeak |
 
-O I²C só é inicializado quando BMP280 ou OLED está ativado. O Geiger
+O I²C só é inicializado quando BMP280, AHT, magnetómetro ou OLED está ativado. O Geiger
 desativado também desativa os dependentes IFTTT/ThingSpeak.
-Se o BMP280 ou OLED estiver ativado mas não responder, assinala-se
-unavailable e tenta-se novamente periodicamente. Sem comunicação física
+Se BMP280, AHT, HMC5883L ou OLED estiver ativado mas não responder,
+assinala-se unavailable e tenta-se novamente periodicamente. Sem comunicação física
 de diagnóstico, o Geiger não consegue distinguir uma remoção de um período
 sem impulsos: desativá-lo explicitamente se for retirado.
 O OLED pode mostrar CPM, ou temperatura se apenas o BMP280 estiver ativo.
@@ -83,7 +97,27 @@ desse ficheiro para gerir tudo pelo HardwareConfig.h.
 Para quem usava IFTTT na V1.4.0, ativar ENABLE_IFTTT=1 com as credenciais válidas.
 O dashboard indica o estado dos módulos, sem guardar os estados nas tabelas
 numéricas. Um histórico antigo pode continuar visível no gráfico até sair
-da janela temporal; não são inseridos zeros artificiais.
+da janela temporal; não são inseridos zeros artificiais. O firmware
+rejeita conflitos entre GPIOs de módulos ativos durante a compilação.
+
+### Recuperação da versão esp32_v6
+
+- GPS lê a UART continuamente e utiliza seis casas decimais, somente
+  com fix recente válido. Ausência de dados e falta de fix são distintas.
+- NTP em segundo plano, UTC ISO 8601 com Z; sem publicar um relógio
+  ainda não sincronizado.
+- AHT: leitura I²C com verificações de comprimento e prazo limitado,
+  sem esperas infinitas se o módulo estiver ausente.
+- ADC: média de 16 leituras em milivolts, ganho/offset configuráveis
+  (v6: 2 e 0,42 V, valores provisórios), não ativar sem verificar o divisor
+  resistivo e a tensão admissível na entrada GPIO34.
+- HMC5883L: identifica o chip, valida os dados e aceita eixos zero.
+  Orientação é aproximada, necessita nivelamento, calibração e declinação local.
+- LoRa: inicialização e envio assíncrono; não encerra SPI após cada envio.
+  Apenas emissor de diagnóstico/CPM. Para entregar dados ao Node-RED
+  por rádio é necessário um recetor/gateway, não incluído.
+- Hall: estado unsupported no core Arduino-ESP32 3.x, onde hallRead foi
+  removido; a temperatura interna é diagnóstica, não temperatura ambiental.
 
 ### 2. Broker MQTT
 
@@ -151,9 +185,9 @@ Não usar amostras simuladas na base de dados de produção.
 - MQTT e MySQL sem TLS só devem ser usados numa rede isolada; restringir acesso
   ao broker, à base de dados, ao editor e ao dashboard. Para ligação remota,
   configurar transporte protegido, autenticação e controlo de acesso.
-- Os sensores adicionais do fluxo (GPS, humidade, campo magnético, tensão,
-  sensores internos) não são adquiridos pelo firmware V1.4.1 incluído.
-  Os gráficos ficam vazios até existirem publicadores compatíveis.
+- Os sensores adicionais são opcionais e os gráficos ficam vazios para
+  os módulos desativados ou sem leitura válida. GPS pode revelar localização:
+  desativá-lo se não for necessário e restringir acesso aos dados.
 - O instante da base de dados é UTC de receção, não o instante físico da
   medição. Dados CPH acumulados e reenviados após falha de rede ficam com
   o instante de chegada. Não existe entrega garantida ou buffer persistente
@@ -165,11 +199,15 @@ Não usar amostras simuladas na base de dados de produção.
 
 ```sh
 node tests/validate-flow.js
+python3 tests/firmware/run-host-tests.py
 ```
 
 Valida ligações e identificadores, as 17 funções SQL, payloads válidos e
-inválidos e correspondência de tabelas e colunas. Não substitui testes
-com ESP32, broker, Node-RED e MySQL reais.
+inválidos e correspondência de tabelas e colunas. O teste host C++17
+verifica combinações de flags, contadores, formato UTC, conversão AHT,
+GPS, validação ADC, magnetómetro, Hall e conflitos de GPIO, usando
+interfaces simuladas. Não substitui a compilação no Arduino IDE nem
+testes com ESP32, broker, Node-RED e MySQL reais.
 
 O firmware preserva a atribuição MIT do código original de Hans Carlos
 Hofmann, baseado no trabalho de Andreas Spiess e Mark A. Heckler.

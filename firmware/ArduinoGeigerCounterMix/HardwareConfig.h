@@ -15,7 +15,32 @@
 #define ENABLE_LCD 0
 #endif
 #ifndef ENABLE_LED
-#define ENABLE_LED 1
+#define ENABLE_LED 0
+#endif
+#ifndef ENABLE_AHT
+#define ENABLE_AHT 1
+#endif
+#ifndef ENABLE_GPS
+#define ENABLE_GPS 1
+#endif
+#ifndef ENABLE_NTP
+#define ENABLE_NTP 1
+#endif
+// ADC requires confirmed external voltage divider and calibration.
+#ifndef ENABLE_VOLTAGE
+#define ENABLE_VOLTAGE 0
+#endif
+#ifndef ENABLE_MAG
+#define ENABLE_MAG 0
+#endif
+#ifndef ENABLE_LORA
+#define ENABLE_LORA 0
+#endif
+#ifndef ENABLE_HALL
+#define ENABLE_HALL 0
+#endif
+#ifndef ENABLE_INTTEMP
+#define ENABLE_INTTEMP 0
 #endif
 
 // Optional cloud services; activate only with valid credentials.
@@ -32,26 +57,113 @@
     (ENABLE_LCD != 0 && ENABLE_LCD != 1) || \
     (ENABLE_LED != 0 && ENABLE_LED != 1) || \
     (ENABLE_IFTTT != 0 && ENABLE_IFTTT != 1) || \
-    (ENABLE_THINGSPEAK != 0 && ENABLE_THINGSPEAK != 1)
+    (ENABLE_THINGSPEAK != 0 && ENABLE_THINGSPEAK != 1) || \
+    (ENABLE_AHT != 0 && ENABLE_AHT != 1) || \
+    (ENABLE_GPS != 0 && ENABLE_GPS != 1) || \
+    (ENABLE_NTP != 0 && ENABLE_NTP != 1) || \
+    (ENABLE_VOLTAGE != 0 && ENABLE_VOLTAGE != 1) || \
+    (ENABLE_MAG != 0 && ENABLE_MAG != 1) || \
+    (ENABLE_LORA != 0 && ENABLE_LORA != 1) || \
+    (ENABLE_HALL != 0 && ENABLE_HALL != 1) || \
+    (ENABLE_INTTEMP != 0 && ENABLE_INTTEMP != 1)
 #error "HardwareConfig switches must be 0 or 1"
 #endif
 
-// Physical wiring. Preserve the original assignments.
+// Physical wiring recovered from ArduinoGeigerCounterMix_esp32_v6.ino.
 #ifndef GEIGER_INPUT_PIN
-#define GEIGER_INPUT_PIN 16
+#define GEIGER_INPUT_PIN 13
 #endif
 #ifndef STATUS_LED_PIN
-#define STATUS_LED_PIN 22
+#define STATUS_LED_PIN -1 // Set a verified free output GPIO before enabling LED.
 #endif
 #ifndef SENSOR_I2C_SDA
-#define SENSOR_I2C_SDA 0
+#define SENSOR_I2C_SDA 21
 #endif
 #ifndef SENSOR_I2C_SCL
-#define SENSOR_I2C_SCL 4
+#define SENSOR_I2C_SCL 22
 #endif
 #ifndef OLED_I2C_ADDRESS
 #define OLED_I2C_ADDRESS 0x3c
 #endif
+
+// AHT10/AHT20 (0x38 by default). HMC5883L only, not QMC5883.
+#ifndef AHT_I2C_ADDRESS
+#define AHT_I2C_ADDRESS 0x38
+#endif
+#ifndef MAG_DECLINATION_DEG
+#define MAG_DECLINATION_DEG 0.0 // Set current local declination after calibration.
+#endif
+#ifndef GPS_RX_PIN
+#define GPS_RX_PIN 16
+#endif
+#ifndef GPS_TX_PIN
+#define GPS_TX_PIN 17
+#endif
+#ifndef GPS_BAUD
+#define GPS_BAUD 9600
+#endif
+#ifndef VOLTAGE_ADC_PIN
+#define VOLTAGE_ADC_PIN 34
+#endif
+// Original v6 provisional calibration. Verify against a multimeter before use.
+#ifndef VOLTAGE_DIVIDER_GAIN
+#define VOLTAGE_DIVIDER_GAIN 2.0
+#endif
+#ifndef VOLTAGE_OFFSET_V
+#define VOLTAGE_OFFSET_V 0.42
+#endif
+#ifndef NTP_SERVER
+#define NTP_SERVER "pool.ntp.org"
+#endif
+#ifndef LORA_SCK_PIN
+#define LORA_SCK_PIN 5
+#endif
+#ifndef LORA_MISO_PIN
+#define LORA_MISO_PIN 19
+#endif
+#ifndef LORA_MOSI_PIN
+#define LORA_MOSI_PIN 27
+#endif
+#ifndef LORA_SS_PIN
+#define LORA_SS_PIN 18
+#endif
+#ifndef LORA_RST_PIN
+#define LORA_RST_PIN 14
+#endif
+#ifndef LORA_DIO0_PIN
+#define LORA_DIO0_PIN 26
+#endif
+#ifndef LORA_FREQUENCY_HZ
+#define LORA_FREQUENCY_HZ 433000000L // Original setting; verify module and local regulations.
+#endif
+
+#define USE_I2C (ENABLE_BMP280 || ENABLE_LCD || ENABLE_AHT || ENABLE_MAG)
+// Compile-time pin ownership check; -1 means a disabled function.
+namespace HardwarePins {
+constexpr int pins[] = {
+  ENABLE_GEIGER ? GEIGER_INPUT_PIN : -1,
+  ENABLE_LED ? STATUS_LED_PIN : -1,
+  USE_I2C ? SENSOR_I2C_SDA : -1, USE_I2C ? SENSOR_I2C_SCL : -1,
+  ENABLE_GPS ? GPS_RX_PIN : -1, ENABLE_GPS ? GPS_TX_PIN : -1,
+  ENABLE_VOLTAGE ? VOLTAGE_ADC_PIN : -1,
+  ENABLE_LORA ? LORA_SCK_PIN : -1, ENABLE_LORA ? LORA_MISO_PIN : -1,
+  ENABLE_LORA ? LORA_MOSI_PIN : -1, ENABLE_LORA ? LORA_SS_PIN : -1,
+  ENABLE_LORA ? LORA_RST_PIN : -1, ENABLE_LORA ? LORA_DIO0_PIN : -1
+};
+constexpr unsigned count = sizeof(pins) / sizeof(pins[0]);
+constexpr bool distinct(unsigned i, unsigned j) {
+  return i >= count ? true : j >= count ? distinct(i + 1, i + 2) :
+         ((pins[i] < 0 || pins[j] < 0 || pins[i] != pins[j]) && distinct(i, j + 1));
+}
+static_assert(distinct(0, 1), "Pin conflict: check HardwareConfig.h");
+static_assert(!ENABLE_LED || (STATUS_LED_PIN >= 0 && STATUS_LED_PIN <= 33 &&
+              !(STATUS_LED_PIN >= 6 && STATUS_LED_PIN <= 11)),
+              "Enable LED only with a verified free output GPIO");
+static_assert(!ENABLE_VOLTAGE || (VOLTAGE_ADC_PIN >= 32 && VOLTAGE_ADC_PIN <= 39),
+              "Classic ESP32 Wi-Fi voltage acquisition requires ADC1 (GPIO32-39)");
+static_assert(!ENABLE_VOLTAGE || VOLTAGE_DIVIDER_GAIN > 0.0,
+              "Voltage divider gain must be positive");
+}
 
 // Cloud radiation services depend on Geiger acquisition.
 #define USE_IFTTT (ENABLE_GEIGER && ENABLE_IFTTT)

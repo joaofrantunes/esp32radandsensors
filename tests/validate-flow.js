@@ -19,14 +19,16 @@ const allSources = flow.filter(n => n.type === 'mqtt in');
 const sources = allSources.filter(n => byId.get(n.wires[0][0])?.type === 'function');
 const statusSources = allSources.filter(n => byId.get(n.wires[0][0])?.type === 'ui_text');
 assert.equal(sources.length, 17);
-assert.equal(allSources.length, 23);
-assert.equal(new Set(allSources.map(n => n.topic)).size, 23);
-assert.equal(statusSources.length, 6);
+assert.equal(allSources.length, 31);
+assert.equal(new Set(allSources.map(n => n.topic)).size, 31);
+assert.equal(statusSources.length, 14);
 assert.deepEqual(statusSources.map(n => n.topic).sort(),
     ['esp32/status','esp32/geiger/status','esp32/bmp280/status','esp32/lcd/status',
-     'esp32/output/state','esp32/alarm'].sort());
+     'esp32/output/state','esp32/alarm','esp32/aht/status','esp32/voltage/status',
+     'esp32/gps/status','esp32/ntp/status','esp32/mag/status','esp32/lora/status',
+     'esp32/hall/status','esp32/inttemp/status'].sort());
 assert.equal(flow.filter(n => n.type === 'ui_chart').length, 16);
-assert.equal(flow.filter(n => n.type === 'ui_text').length, 6);
+assert.equal(flow.filter(n => n.type === 'ui_text').length, 14);
 const tables = new Set();
 const db = flow.find(n => n.type === 'Stackhero-MySQL');
 let checks = 0;
@@ -62,4 +64,4 @@ for (const source of sources) {
 assert.equal(tables.size, 17);
 assert.equal(flow.find(n => n.type === 'mqtt-broker').broker, 'localhost');
 assert.equal(flow.find(n => n.type === 'Stackhero-MySQL-Server').host, 'localhost');
-console.log('PASS: ' + checks + ' payload cases; 17 telemetry topics/tables; 16 charts; 6 status indicators; valid flow wiring');
+console.log('PASS: ' + checks + ' payload cases; 17 telemetry topics/tables; 16 charts; 14 status indicators; valid flow wiring');

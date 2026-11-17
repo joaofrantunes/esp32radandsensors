@@ -36,11 +36,15 @@ configurações de servidores sem endereços privados.
 
 | Função | GPIO | Nota |
 |---|---:|---|
-| Geiger CAJOE — saída de impulsos | 16 | Interrupção FALLING; confirmar nível lógico compatível 3,3 V |
-| LED | 22 | Ativo a LOW |
-| BMP280 — SDA | 0 | GPIO de strapping; verificar condições de arranque |
-| BMP280 — SCL | 4 | Barramento I²C a 100 kHz |
-| OLED opcional | 0 / 4 | Mesmo I²C; endereço 0x3c |
+| Geiger CAJOE — saída de impulsos | 13 | Interrupção FALLING; confirmar nível lógico compatível 3,3 V |
+| LED | não atribuído | Desativado; GPIO22 reservado para SCL |
+| I²C SDA | 21 | BMP280, AHT, HMC5883L, OLED |
+| I²C SCL | 22 | Barramento I²C a 100 kHz |
+| OLED opcional | 21 / 22 | Mesmo I²C; endereço 0x3c |
+| GPS RX / TX | 16 / 17 | UART2 a 9600 baud; cruzar TX/RX do módulo |
+| ADC tensão | 34 | Só entrada; verificar divisor resistivo e calibração |
+| LoRa SCK / MISO / MOSI | 5 / 19 / 27 | SPI |
+| LoRa SS / RST / DIO0 | 18 / 14 / 26 | Opcional; frequência original 433 MHz a confirmar |
 
 Os endereços BMP280 suportados são 0x76 e 0x77. O módulo BMP280 mede
 temperatura e pressão; a altitude é estimada a partir da pressão,
@@ -55,31 +59,31 @@ assumindo 1013,25 hPa ao nível do mar. Não mede humidade.
 | radiation | CPH | ESP32RADIATION | radiation | 3600 s |
 | cpm | CPM | ESP32CPM | cpm | 15 s |
 | approxaltitude | m | ESP32APPROXALTITUDE | approxaltitude | 60 s |
-| voltage | tensão, V (a confirmar no publicador) | ESP32VOLTAGE | voltage | externo |
-| humidity | % | ESP32HUMIDITY | humidity | externo |
-| temphum | °C | ESP32TEMPHUM | temphum | externo |
-| lat_dd | graus decimais | ESP32LAT_DD | lat_dd | externo |
-| lon_dd | graus decimais | ESP32LON_DD | lon_dd | externo |
-| timestamp | ISO 8601 com fuso ou Unix ms numérico | ESP32TIMESTAMP | timestamp | externo |
-| magx | µT | ESP32MAGX | magx | externo |
-| magy | µT | ESP32MAGY | magy | externo |
-| magz | µT | ESP32MAGZ | magz | externo |
-| magangle | graus | ESP32MAGANGLE | magxangle | externo |
-| hall | unidade a confirmar | ESP32HALL | hall | externo |
-| inttemp | temperatura interna, unidade a confirmar | ESP32INTTEMP | intTemp | externo |
+| voltage | V, calibração a confirmar | ESP32VOLTAGE | voltage | opcional, 60 s |
+| humidity | % | ESP32HUMIDITY | humidity | AHT, 60 s |
+| temphum | °C | ESP32TEMPHUM | temphum | AHT, 60 s |
+| lat_dd | graus decimais | ESP32LAT_DD | lat_dd | GPS, 60 s |
+| lon_dd | graus decimais | ESP32LON_DD | lon_dd | GPS, 60 s |
+| timestamp | UTC ISO 8601 com Z | ESP32TIMESTAMP | timestamp | NTP, 60 s |
+| magx | µT | ESP32MAGX | magx | opcional, 60 s |
+| magy | µT | ESP32MAGY | magy | opcional, 60 s |
+| magz | µT | ESP32MAGZ | magz | opcional, 60 s |
+| magangle | graus, orientação aproximada | ESP32MAGANGLE | magxangle | opcional, 60 s |
+| hall | leitura bruta assinada | ESP32HALL | hall | opcional, core 2.x |
+| inttemp | temperatura interna °C, diagnóstico | ESP32INTTEMP | intTemp | opcional, 60 s |
 
 Os nomes `magxangle` e `intTemp` seguem as consultas originais.
-Não foram presumidos GPIOs ou modelos de sensores adicionais.
+GPIOs e modelos foram recuperados do sketch esp32_v6, ainda a confirmar
+no equipamento físico. As tabelas SQL não precisam de migração para esta versão.
 O timestamp do sensor é guardado como valor próprio; não está associado
 automaticamente a mensagens MQTT de outros tópicos.
 
 ## Configuração e estado dos módulos
 
 O ficheiro [HardwareConfig.h](../firmware/ArduinoGeigerCounterMix/HardwareConfig.h)
-permite desligar Geiger, BMP280, OLED, LED, IFTTT e ThingSpeak sem alterar
+permite desligar cada módulo sem alterar
 o código de aquisição. Mudanças nas flags exigem recompilação e carregamento.
-GPIOs e endereço OLED são também centralizados. Os sensores adicionais
-do fluxo permanecem como extensões previstas, não como medições simuladas.
+GPIOs e endereço OLED são também centralizados.
 
 | Tópico de estado | Valores publicados |
 |---|---|
@@ -89,14 +93,25 @@ do fluxo permanecem como extensões previstas, não como medições simuladas.
 | esp32/lcd/status | ok / unavailable / disabled |
 | esp32/output/state | on / off / disabled |
 | esp32/alarm | on / off / disabled |
+| esp32/aht/status | ok / unavailable / disabled / waiting / stale |
+| esp32/voltage/status | ok / unavailable / disabled / waiting / stale |
+| esp32/gps/status | ok / no_fix / unavailable / disabled / waiting / stale |
+| esp32/ntp/status | ok / waiting / disabled / stale |
+| esp32/mag/status | ok / unavailable / disabled / waiting / stale |
+| esp32/lora/status | ok / unavailable / disabled / waiting / stale |
+| esp32/hall/status | ok / unsupported / disabled / waiting / stale |
+| esp32/inttemp/status | ok / unavailable / unsupported / disabled / waiting / stale |
 
-O Node-RED mostra estes seis estados num grupo próprio; não são escritos
+O Node-RED mostra estes 14 estados em grupos próprios; não são escritos
 nas tabelas numéricas. Estados são retidos no broker e devem ser
 interpretados em conjunto com online/offline. enabled no Geiger significa
 configurado, não prova de presença física. O comando esp32/output
 (on/off) só é subscrito quando o LED estiver ativado.
 O BMP280 tenta recuperar a cada 30 s e o OLED verifica a presença a
-cada 15 s. Nenhum deles bloqueia a aquisição por falta física do módulo.
+cada 15 s. Os módulos adicionais são lidos a cada 60 s, com verificações
+de disponibilidade e sem loops infinitos por falta física. GPS é drenado
+continuamente e NTP é iniciado após ligação Wi-Fi. As amostras de módulos
+adicionais com mais de 90 s não são publicadas como atuais.
 
 ## Base de dados
 
