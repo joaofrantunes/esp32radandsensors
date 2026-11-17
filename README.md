@@ -39,12 +39,17 @@ O fluxo não recarrega automaticamente o histórico MySQL no dashboard.
 | [database/schema.sql](database/schema.sql) | Criação da base de dados e das 17 tabelas |
 | [database/queries.sql](database/queries.sql) | Exemplos de consultas históricas |
 | [docs/architecture.md](docs/architecture.md) | Ligações, tópicos, tabelas e frequência |
+| [docs/arduino-ide.md](docs/arduino-ide.md) | Exemplo de configuração Arduino IDE, bibliotecas e perfis de sensores |
 | [tests/validate-flow.js](tests/validate-flow.js) | Testes locais do fluxo e do contrato SQL |
 | [tests/firmware/](tests/firmware/) | Testes do firmware com interfaces simuladas (sem ESP32) |
 
 ## Instalação
 
 ### 1. ESP32
+
+Consultar o [guia Arduino IDE](docs/arduino-ide.md) para reproduzir a configuração
+WEMOS LOLIN32 Lite com o core ESP32 2.0.16, instalar as bibliotecas e selecionar
+os módulos físicos da estação.
 
 1. Abrir `firmware/ArduinoGeigerCounterMix/ArduinoGeigerCounterMix.ino` no Arduino IDE.
 2. Instalar o suporte de placas Arduino-ESP32 e as bibliotecas PubSubClient,
