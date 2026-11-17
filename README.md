@@ -59,11 +59,14 @@ WEMOS LOLIN32 Lite com o core ESP32 2.0.16, instalar as bibliotecas e selecionar
 os módulos físicos da estação.
 
 1. Abrir `firmware/ArduinoGeigerCounterMix/ArduinoGeigerCounterMix.ino` no Arduino IDE.
-2. Instalar o suporte de placas Arduino-ESP32 e as bibliotecas PubSubClient,
-   Adafruit BMP280, Adafruit BME280 e Adafruit BusIO/Unified Sensor. Instalar TinyGPSPlus
-   quando GPS está ativado. SSD1306 (ThingPulse), LoRa (Sandeep Mistry),
-   IFTTTWebhook e ThingSpeak são opcionais. AHT10/AHT20 e HMC5883L/QMC5883L
-   utilizam o driver I²C integrado, sem biblioteca adicional.
+2. Instalar o suporte de placas Arduino-ESP32 2.0.16 e as seis bibliotecas
+   do perfil predefinido: **PubSubClient**, **Adafruit BMP280 Library**,
+   **Adafruit BME280 Library**, **Adafruit Unified Sensor**, **Adafruit BusIO**
+   e **TinyGPSPlus**. Se `ENABLE_LORA=1`, é também obrigatória a biblioteca
+   **LoRa (Sandeep Mistry)**. O OLED (ThingPulse), IFTTTWebhook e ThingSpeak
+   só são necessários quando os respetivos módulos estão ativados. Consultar
+   a [checklist completa e resolução de erros](docs/arduino-ide.md#3-bibliotecas-arduino-necessárias).
+   AHT10/AHT20 e HMC5883L/QMC5883L utilizam o driver I²C integrado.
 3. Copiar `credentials.example.h` para `credentials.h`. Preencher o SSID,
    a palavra-passe, endereço e porta do broker MQTT. Ativar serviços externos
    apenas se forem configurados no HardwareConfig.h.

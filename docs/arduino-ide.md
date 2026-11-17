@@ -46,6 +46,32 @@ upload é independente da velocidade do monitor série.
 Abrir **Ferramentas > Gerir Bibliotecas** (Ctrl+Shift+I no IDE 1.8.18).
 Pesquisar os nomes abaixo e instalar as dependências propostas pelo gestor.
 
+### Checklist antes de compilar a V1.7.0
+
+Para a estação WEMOS LOLIN32 Lite com `STATION_PROFILE=1`, instalar:
+
+- [ ] PubSubClient (Nick O'Leary, versão 2.8)
+- [ ] Adafruit BMP280 Library (Adafruit)
+- [ ] Adafruit BME280 Library (Adafruit)
+- [ ] Adafruit Unified Sensor (Adafruit)
+- [ ] Adafruit BusIO (Adafruit)
+- [ ] TinyGPSPlus (Mikal Hart)
+
+Se os módulos abaixo estiverem efetivamente ativados, instalar também:
+
+- [ ] LoRa (Sandeep Mistry) — obrigatório quando `ENABLE_LORA=1`.
+- [ ] ESP8266 and ESP32 Oled Driver for SSD1306 display (ThingPulse) — quando `ENABLE_LCD=1`.
+- [ ] ThingSpeak (MathWorks) — quando `ENABLE_GEIGER=1` e `ENABLE_THINGSPEAK=1`.
+- [ ] IFTTTWebhook (John Romkey, legado) — quando `ENABLE_GEIGER=1` e `ENABLE_IFTTT=1`.
+
+**Atenção a configurações reutilizadas:** `credentials.h` é incluído antes de
+`HardwareConfig.h`. Uma flag antiga `ENABLE_LORA=1` ou outra flag nesse ficheiro
+pode ativar uma biblioteca que não pertence ao perfil predefinido. Para gerir
+os módulos num único local, retirar as flags antigas de `credentials.h` e
+ajustar `HardwareConfig.h`, conservando os valores de rede e credenciais.
+Instalar uma biblioteca por si só não ativa o hardware. Manter a flag a 0
+quando o módulo não está instalado.
+
 ### Instalação para o perfil predefinido
 
 | Nome no gestor de bibliotecas | Autor | Header / função | Quando instalar |
@@ -146,8 +172,15 @@ para ligações, tópicos MQTT e dados encaminhados para o Node-RED.
 | `PubSubClient.h: No such file or directory` | Instalar PubSubClient, de Nick O'Leary. |
 | `Adafruit_BMP280.h: No such file or directory` | Instalar Adafruit BMP280 Library e dependências ou desativar BMP280 se ausente. |
 | `Adafruit_BME280.h: No such file or directory` | Instalar Adafruit BME280 Library ou usar `ENABLE_BME280 0` se BMP280 estiver confirmado. |
+| `Adafruit_Sensor.h: No such file or directory` | Instalar Adafruit Unified Sensor. |
+| `Adafruit_I2CDevice.h` ou `Adafruit_SPIDevice.h: No such file or directory` | Instalar Adafruit BusIO. |
 | `TinyGPSPlus.h: No such file or directory` | Instalar TinyGPSPlus ou desativar GPS se ausente. |
+| `LoRa.h: No such file or directory` | Instalar LoRa, de Sandeep Mistry, se o módulo estiver instalado/ativado; caso contrário, definir `ENABLE_LORA 0` e verificar overrides em `credentials.h`. |
+| `SSD1306.h: No such file or directory` | Instalar a biblioteca OLED ThingPulse compatível ou definir `ENABLE_LCD 0`. |
+| `ThingSpeak.h: No such file or directory` | Instalar ThingSpeak, de MathWorks, ou desativar `ENABLE_THINGSPEAK`. |
+| `IFTTTWebhook.h: No such file or directory` | Manter `ENABLE_IFTTT 0`, salvo integração legada validada. |
 | Múltiplas bibliotecas para `WiFi.h` | Confirmar que o IDE seleciona a biblioteca do pacote `esp32` 2.0.16. O aviso por si só não é erro. |
+| Múltiplas bibliotecas para `TinyGPSPlus.h` | Confirmar que o IDE seleciona TinyGPSPlus de Mikal Hart; não é necessário apagar outras bibliotecas se a selecionada for a correta. |
 | Gráfico vazio no Node-RED | Confirmar flag, sensor físico, ligação MQTT e existência de uma leitura válida. Não fabricar zeros. |
 
 ### Resultado de compilação de referência
